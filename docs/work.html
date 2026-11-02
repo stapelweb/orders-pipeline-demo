@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работы — Владимир Веселов, разработка и автоматизация</title>
+<meta name="description" content="Портфолио для бирж: сайты, интерактивные инструменты, автоматизация и работа с данными. Каждая работа открывается по ссылке и работает.">
+<meta property="og:title" content="Работы — Владимир Веселов">
+<meta property="og:description" content="Двадцать шесть работ, двадцать открываются по ссылке и работают. Не описания, а рабочие инструменты.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/stapel.css?v=2026-10-04">
+    <link rel="canonical" href="https://stapelweb.ru/work.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/work.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body data-page="work">
+
+<div id="site-head-slot"></div>
+
+<main id="main">
+
+  <!-- Шапка страницы -->
+  <section class="case-head wrap">
+    <p class="eyebrow">Портфолио · Владимир Веселов</p>
+    <h1 class="case-title">Работы, которые открываются и работают</h1>
+    <p class="case-lead">
+      Ниже двадцать шесть работ, и двадцать из них открываются по ссылке прямо
+      сейчас — это не описания, а те же файлы, что получает заказчик.
+      У остальных ссылки нет, и на карточке сказано почему.
+    </p>
+    <p class="notice notice--info" style="margin-top:24px;max-width:70ch">
+      Эта страница — для площадок, поэтому контактов на ней нет.
+      Обсуждать задачу пишите в чат биржи, где вы читаете мой отклик:
+      так у нас обоих остаётся гарант сделки и возможность оставить отзыв.
+    </p>
+  </section>
+
+  <!-- Кто делает -->
+  <section class="section wrap" id="about">
+    <div class="section__head">
+      <p class="eyebrow">Кто делает</p>
+      <h2 class="section__title">Работать будете со мной, а не с менеджером</h2>
+      <p class="section__lead">
+        Заявку читает, задачу разбирает и работу делает один человек.
+      </p>
+    </div>
+    <div class="about-grid" id="author" data-reveal></div>
+  </section>
+
+  <!-- Работы -->
+  <section class="section wrap" id="works">
+    <div class="section__head">
+      <p class="eyebrow">Портфолио</p>
+      <h2 class="section__title">Откройте и проверьте сами</h2>
+      <p class="section__lead">
+        У каждой карточки метка: сделано по заказу или для себя, открывается ли работа
+        сейчас и не построена ли она на условных данных. Придуманного здесь нет.
+      </p>
+    </div>
+
+    <div class="notice notice--info" style="margin-bottom:32px">
+      <p style="margin-bottom:12px"><strong>Что означают метки</strong></p>
+      <p style="display:flex;flex-wrap:wrap;gap:12px 20px;font-size:12.5px" class="muted">
+        <span><span class="tag tag--client">работа по заказу</span> — сделано клиенту, показано с его согласия</span>
+        <span><span class="tag tag--live">живая ссылка</span> — открывается и работает прямо сейчас</span>
+        <span><span class="tag tag--own">собственный проект</span> — сделано для себя, не по заказу</span>
+        <span><span class="tag tag--demo">демо на условных данных</span> — образец подхода, клиентского заказа за ним нет</span>
+      </p>
+    </div>
+
+    <div class="filters" id="filters" role="group" aria-label="Фильтр работ по типу"></div>
+    <p class="filters__count" id="filter-count" role="status" aria-live="polite"></p>
+
+    <div class="works" id="all-works"></div>
+
+    <button class="btn btn--ghost more-toggle" id="more-toggle" type="button"
+            aria-expanded="false" aria-controls="more-works" hidden></button>
+    <div class="works" id="more-works" hidden></div>
+  </section>
+
+  <!-- Как работаю -->
+  <section class="section wrap" id="rules">
+    <div class="section__head">
+      <p class="eyebrow">Что вы получаете</p>
+      <h2 class="section__title">Четыре обещания, которые можно проверить</h2>
+      <p class="section__lead">
+        Отзывы на площадке пока копятся — придумывать их я не стану. Пока предлагаю судить
+        по работам выше и по тому, как пройдёт первый разговор в чате.
+      </p>
+    </div>
+    <div class="rules" id="rules-grid" data-reveal></div>
+  </section>
+
+  <!-- Порядок работы -->
+  <section class="section wrap" id="process">
+    <div class="section__head">
+      <p class="eyebrow">Порядок работы</p>
+      <h2 class="section__title">Что будет после того, как вы напишете</h2>
+      <p class="section__lead">
+        Четыре шага. До третьего вы ничего не платите и ничем не связаны.
+      </p>
+    </div>
+    <ol class="psteps" id="process-steps" data-reveal></ol>
+
+    <div class="mid-cta" style="margin-top:40px">
+      <p>
+        Есть похожая задача? Напишите в чат площадки, какая именно — так разговор
+        пойдёт быстрее, и я отвечу разбором, а не общими словами.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<div id="site-foot-slot"></div>
+
+<script src="assets/data.js?v=2026-11-01"></script>
+<script src="assets/stapel.js?v=2026-10-04"></script>
+</body>
+</html>
