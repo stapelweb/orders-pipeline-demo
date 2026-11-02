@@ -21,10 +21,10 @@ python tests/test_pipeline.py
 
 Живые работы, которые можно открыть и потрогать прямо сейчас:
 
-- **[stapelweb.ru/work.html](https://stapelweb.ru/work.html)** — двенадцать
+- **[stapelweb.github.io/orders-pipeline-demo/work.html](https://stapelweb.github.io/orders-pipeline-demo/work.html)** — двенадцать
   работающих приложений: калькуляторы, подборщики, экраны с данными. Считают
   в браузере, без сервера.
-- **[stapelweb.ru/pult.html](https://stapelweb.ru/pult.html)** — рабочий экран
+- **[stapelweb.github.io/orders-pipeline-demo/pult.html](https://stapelweb.github.io/orders-pipeline-demo/pult.html)** — рабочий экран
   на настоящих данных: лента, отбор, реестр, поиск.
 - **[stapelweb.ru/bs-sync/](https://stapelweb.ru/bs-sync/)** — сервис-коннектор
   к чужому API с открытым
