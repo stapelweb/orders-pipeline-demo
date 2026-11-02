@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор финансовых целей</title>
+<meta name="description" content="Калькулятор финансовых целей: пенсия, квартира, образование — срок, ежемесячный взнос и готовый план в рублях, долларах, евро или юанях.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#deeaf7;color:#0d2a4a;font-family:Arial,sans-serif;padding:1.5rem 1.25rem 2rem;min-height:100vh}
+h1{font-size:20px;font-weight:600;color:#0a1e38}
+.subtitle{font-size:13px;color:#4a6a8a;margin-top:3px}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#4a6a8a;margin-bottom:8px}
+.gb{display:flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid #aac4de;border-radius:10px;background:#eaf3fb;cursor:pointer;font-size:13px;color:#2a5070;transition:all .15s}
+.gb:hover{border-color:#1a4a7a;color:#0d2a4a}
+.gb.active{border-color:#1a4a7a;background:#1a4a7a;color:#deeaf7;font-weight:600}
+.goal-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:1.2rem 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+.field label{font-size:12px;color:#3a5a7a;display:flex;justify-content:space-between;margin-bottom:5px}
+.field label span{color:#0a1e38;font-weight:600}
+input[type=range]{width:100%;accent-color:#1a4a7a}
+.num-input{display:flex;align-items:center;gap:8px;background:#eaf3fb;border:1px solid #aac4de;border-radius:8px;padding:7px 10px}
+.num-input input{border:none;background:transparent;font-size:14px;color:#0a1e38;width:100%;outline:none}
+.num-input span{font-size:12px;color:#4a6a8a}
+select{background:#eaf3fb;border:1px solid #aac4de;border-radius:8px;padding:8px 12px;color:#0a1e38;font-size:14px;outline:none}
+.divider{border:none;border-top:1px solid #b8d0e8;margin:1.2rem 0}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.mcard{background:#c8dff2;border:1px solid #aac4de;border-radius:10px;padding:12px 14px}
+.mcard .ml{font-size:11px;color:#3a5a7a;margin-bottom:4px}
+.mcard .mv{font-size:18px;font-weight:600;color:#0a1e38}
+.mcard .ms{font-size:11px;color:#5a7a9a;margin-top:2px}
+.verdict{border-radius:10px;border:1px solid;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:1rem}
+.verdict i{font-size:20px;flex-shrink:0;margin-top:1px}
+.verdict-ok{border-color:#2d8a4e;background:#e8f5ee}
+.verdict-ok i,.verdict-ok strong{color:#1d6a3a}
+.verdict-warn{border-color:#b08020;background:#fdf6e3}
+.verdict-warn i,.verdict-warn strong{color:#8a6010}
+.verdict-hard{border-color:#b03030;background:#fce8e8}
+.verdict-hard i,.verdict-hard strong{color:#8a1a1a}
+.vtext{font-size:13px;color:#0d2a4a;line-height:1.55}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#3a5a7a}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
+.sc-card{background:#c8dff2;border:1px solid #aac4de;border-radius:12px;padding:14px;overflow:hidden}
+.sc-card.best{border-color:#1a4a7a;border-width:2px}
+.sc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.sc-name{font-size:13px;font-weight:600;color:#0a1e38;display:flex;align-items:center;gap:6px}
+.sc-badge{font-size:10px;background:#1a4a7a;color:#deeaf7;border-radius:4px;padding:2px 6px}
+.sc-rate{font-size:11px;color:#5a7a9a;margin-bottom:10px}
+.sc-monthly{font-size:17px;font-weight:600;color:#0a1e38;margin-bottom:2px}
+.sc-label{font-size:11px;color:#4a6a8a;margin-bottom:10px}
+.sc-chart-wrap{position:relative;height:130px;margin-bottom:8px}
+.sc-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.sc-stat{background:#eaf3fb;border-radius:6px;padding:6px 8px}
+.sc-stat .sl{font-size:10px;color:#5a7a9a}
+.sc-stat .sv{font-size:12px;font-weight:600;color:#0a1e38}
+.instruments{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem}
+.inst-card{background:#c8dff2;border:1px solid #aac4de;border-radius:10px;padding:12px 14px}
+.inst-card .inst-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.inst-card i{font-size:18px;color:#1a4a7a}
+.inst-name{font-size:13px;font-weight:600;color:#0a1e38}
+.inst-why{font-size:12px;color:#3a5a7a;line-height:1.5}
+.inst-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;margin-top:5px}
+.badge-low{background:#e8f5ee;border:1px solid #2d8a4e;color:#1d6a3a}
+.badge-med{background:#fdf6e3;border:1px solid #b08020;color:#8a6010}
+.badge-high{background:#fce8e8;border:1px solid #b03030;color:#8a1a1a}
+.export-btn{width:100%;padding:11px;background:#1a4a7a;border:none;border-radius:10px;color:#deeaf7;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:.5rem}
+.export-btn:hover{background:#0d2a4a}
+.tips-box{background:#c8dff2;border:1px solid #aac4de;border-radius:8px;padding:12px 14px;font-size:12px;color:#2a4a6a;line-height:1.6;margin-bottom:1rem}
+.tips-box strong{color:#0a1e38}
+@media(max-width:600px){.row2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.sc-grid{grid-template-columns:1fr}.instruments{grid-template-columns:1fr}}
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/goals.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/goals.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+
+<div style="max-width:760px;margin:0 auto">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem;flex-wrap:wrap;gap:10px">
+  <div>
+    <h1><i class="ti ti-diamond" style="font-size:20px;vertical-align:-2px;margin-right:7px;color:#1a4a7a"></i>Калькулятор целей</h1>
+    <p class="subtitle">Профессиональный финансовый план для клиента</p>
+  </div>
+  <select id="currency" onchange="setCurrency(this.value)">
+    <option value="RUB">₽ Рубль</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="CNY">¥ Юань</option>
+  </select>
+</div>
+
+<div class="goal-tabs">
+  <button class="gb active" onclick="setGoal('pension',this)"><i class="ti ti-beach"></i>Пенсия</button>
+  <button class="gb" onclick="setGoal('flat',this)"><i class="ti ti-building-estate"></i>Квартира</button>
+  <button class="gb" onclick="setGoal('edu',this)"><i class="ti ti-school"></i>Образование</button>
+  <button class="gb" onclick="setGoal('car',this)"><i class="ti ti-car"></i>Автомобиль</button>
+  <button class="gb" onclick="setGoal('custom',this)"><i class="ti ti-star"></i>Своя цель</button>
+</div>
+
+<div class="row2">
+  <div class="field">
+    <label>Сумма цели <span id="amountDisplay">5 000 000</span></label>
+    <input type="range" id="amountSlider" min="100000" max="50000000" step="100000" value="5000000" oninput="updateAmount(+this.value)">
+  </div>
+  <div class="field">
+    <label>Своя сумма</label>
+    <div class="num-input">
+      <input type="number" id="amountCustom" placeholder="введите сумму" oninput="setCustom(+this.value)">
+      <span id="symLabel">₽</span>
+    </div>
+  </div>
+</div>
+<div class="row2">
+  <div class="field">
+    <label>Срок <span id="yearsDisplay">10 лет</span></label>
+    <input type="range" id="yearsSlider" min="1" max="40" step="1" value="10" oninput="updateYears(+this.value)">
+  </div>
+  <div class="field">
+    <label>Уже накоплено <span id="savedDisplay">0</span></label>
+    <input type="range" id="savedSlider" min="0" max="10000000" step="100000" value="0" oninput="updateSaved(+this.value)">
+  </div>
+</div>
+<div class="row2">
+  <div class="field">
+    <label>Инфляция <span id="inflDisplay">7%</span></label>
+    <input type="range" id="inflSlider" min="0" max="20" step="0.5" value="7" oninput="updateInfl(+this.value)">
+  </div>
+  <div class="field">
+    <label>Базовая доходность <span id="rateDisplay">8%</span></label>
+    <input type="range" id="rateSlider" min="1" max="30" step="0.5" value="8" oninput="updateRate(+this.value)">
+  </div>
+</div>
+
+<hr class="divider">
+<p class="section-title">Итоговый план — базовый сценарий</p>
+<div class="metrics">
+  <div class="mcard"><div class="ml">Взнос/месяц</div><div class="mv" id="mMonthly">—</div><div class="ms" id="mMonthlySub"></div></div>
+  <div class="mcard"><div class="ml">Всего вложено</div><div class="mv" id="mTotal">—</div><div class="ms" id="mTotalSub"></div></div>
+  <div class="mcard"><div class="ml">Доход от %</div><div class="mv" id="mInterest">—</div><div class="ms" id="mInterestSub"></div></div>
+</div>
+<div class="verdict" id="verdict">
+  <i class="ti ti-circle-check"></i>
+  <div class="vtext" id="verdictText"></div>
+</div>
+
+<hr class="divider">
+<p class="section-title">Три сценария — сравнение диаграмм</p>
+<div class="sc-grid" id="scenarioGrid"></div>
+
+<hr class="divider">
+<p class="section-title">Общий график роста (все сценарии)</p>
+<div class="legend">
+  <span class="leg-item"><span class="leg-dot" style="background:#2d8a5e"></span>Консервативный</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#1a4a7a"></span>Умеренный</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#b03030"></span>Агрессивный</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#e07020;width:16px;height:3px;border-radius:0"></span>Цель</span>
+</div>
+<div style="position:relative;height:240px;margin-bottom:1rem">
+  <canvas id="mainChart"></canvas>
+</div>
+
+<hr class="divider">
+<p class="section-title">Рекомендуемые инструменты</p>
+<div class="instruments" id="instruments"></div>
+<div class="tips-box" id="tips"></div>
+
+<button class="export-btn" onclick="exportPDF()">
+  <i class="ti ti-printer" style="font-size:18px"></i>
+  Распечатать / сохранить PDF для клиента
+</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const CURRENCIES={RUB:{sym:'₽',name:'руб',def:5000000},USD:{sym:'$',name:'USD',def:55000},EUR:{sym:'€',name:'EUR',def:50000},CNY:{sym:'¥',name:'CNY',def:400000}};
+const GOALS={
+  pension:{label:'Пенсия',amount:10000000,years:20,tip:'Пенсионный горизонт — лучший случай для сложного процента. Рассмотрите ИИС типа Б, БПИФ на акции Мосбиржи (SBMX, TMOS) и дивидендные бумаги крупных эмитентов (Сбер, Лукойл, Татнефть).'},
+  flat:{label:'Квартира',amount:8000000,years:7,tip:'Для первоначального взноса по ипотеке (15–30%) на срок до 7 лет оптимальны ОФЗ и вклады. Избегайте высокорисковых активов. Можно добавить БПИФ облигаций (SBRB, OBLG) для чуть большей доходности.'},
+  edu:{label:'Образование',amount:2000000,years:5,tip:'Короткий горизонт — консервативная стратегия. Вклад с капитализацией или БПИФ денежного рынка (LQDT, SBMM) дадут предсказуемый результат без рыночного риска.'},
+  car:{label:'Автомобиль',amount:3000000,years:3,tip:'3 года — слишком мало для акций. Накопительный счёт или ОФЗ краткосрочные — оптимальный выбор без риска. Рассмотрите также БПИФ денежного рынка AKMM или LQDT.'},
+  custom:{label:'Цель',amount:1000000,years:3,tip:'Подберите инструменты под срок: до 3 лет — вклады/ОФЗ/БПИФ денежного рынка, 3–7 лет — смешанный портфель с БПИФ облигаций, 7+ лет — акции и БПИФ на индекс Мосбиржи.'}
+};
+let S={goal:'pension',amount:5000000,years:10,rate:8,saved:0,infl:7,currency:'RUB'};
+let mainChart=null;
+const scCharts={};
+function curr(){return CURRENCIES[S.currency]}
+function fmt(n){return Math.round(n).toLocaleString('ru-RU')+' '+curr().sym}
+function fmtS(n){const c=curr();if(n>=1000000)return(n/1000000).toFixed(1)+'М '+c.sym;if(n>=1000)return(n/1000).toFixed(0)+'К '+c.sym;return Math.round(n)+' '+c.sym}
+function py(n){if(n%100>=11&&n%100<=14)return'лет';const m=n%10;if(m===1)return'год';if(m>=2&&m<=4)return'года';return'лет'}
+function calcM(amount,years,rate,saved){
+  const n=years*12,mr=rate/100/12;
+  const fvS=saved*Math.pow(1+mr,n);
+  const rem=Math.max(0,amount-fvS);
+  if(mr<0.0001)return rem/n;
+  return rem*mr/(Math.pow(1+mr,n)-1);
+}
+function buildSeries(years,rate,saved,monthly){
+  const mr=rate/100/12;
+  const contribs=[],totals=[];
+  let acc=saved;
+  for(let y=0;y<=years;y++){
+    if(y>0){for(let m=0;m<12;m++){acc=acc*(1+mr)+monthly}}
+    contribs.push(Math.round(saved+monthly*y*12));
+    totals.push(Math.round(acc));
+  }
+  return{contribs,totals};
+}
+function setCurrency(c){
+  S.currency=c;
+  document.getElementById('symLabel').textContent=CURRENCIES[c].sym;
+  S.amount=CURRENCIES[c].def;
+  document.getElementById('amountSlider').value=S.amount;
+  document.getElementById('amountDisplay').textContent=S.amount.toLocaleString('ru-RU');
+  S.saved=0;document.getElementById('savedSlider').value=0;document.getElementById('savedDisplay').textContent='0';
+  document.getElementById('amountCustom').value='';calc();
+}
+function setGoal(g,el){
+  S.goal=g;
+  document.querySelectorAll('.gb').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const gd=GOALS[g];S.amount=gd.amount;S.years=gd.years;
+  document.getElementById('amountSlider').value=gd.amount;
+  document.getElementById('amountDisplay').textContent=gd.amount.toLocaleString('ru-RU');
+  document.getElementById('yearsSlider').value=gd.years;
+  document.getElementById('yearsDisplay').textContent=gd.years+' '+py(gd.years);
+  document.getElementById('amountCustom').value='';calc();
+}
+function updateAmount(v){S.amount=v;document.getElementById('amountDisplay').textContent=v.toLocaleString('ru-RU');document.getElementById('amountCustom').value='';calc()}
+function setCustom(v){if(!v||v<=0)return;S.amount=v;document.getElementById('amountSlider').value=Math.min(v,50000000);document.getElementById('amountDisplay').textContent=v.toLocaleString('ru-RU');calc()}
+function updateYears(v){S.years=v;document.getElementById('yearsDisplay').textContent=v+' '+py(v);calc()}
+function updateRate(v){S.rate=v;document.getElementById('rateDisplay').textContent=(+v).toFixed(1)+'%';calc()}
+function updateSaved(v){S.saved=v;document.getElementById('savedDisplay').textContent=v.toLocaleString('ru-RU');calc()}
+function updateInfl(v){S.infl=v;document.getElementById('inflDisplay').textContent=(+v).toFixed(1)+'%';calc()}
+function calc(){
+  const{amount,years,rate,saved,goal}=S;
+  const monthly=calcM(amount,years,rate,saved);
+  const n=years*12,mr=rate/100/12;
+  const totalContrib=monthly*n+saved;
+  const interest=Math.max(0,amount-totalContrib);
+  const intPct=Math.round(interest/amount*100);
+  document.getElementById('mMonthly').textContent=fmtS(monthly);
+  document.getElementById('mMonthlySub').textContent='в месяц × '+years+' '+py(years);
+  document.getElementById('mTotal').textContent=fmtS(totalContrib);
+  document.getElementById('mTotalSub').textContent='ваши деньги';
+  document.getElementById('mInterest').textContent=fmtS(interest);
+  document.getElementById('mInterestSub').textContent=intPct+'% от цели';
+  const vd=document.getElementById('verdict');
+  let vcls,vicon,vtxt;
+  if(monthly<amount*0.01){vcls='verdict-ok';vicon='ti-circle-check';vtxt=`<strong>Отличная реалистичность!</strong> Взнос ${fmtS(monthly)}/мес — очень посильный. Цель "${GOALS[goal].label}" достижима.`}
+  else if(monthly<amount*0.04){vcls='verdict-ok';vicon='ti-circle-check';vtxt=`<strong>Цель реалистична.</strong> ${fmtS(monthly)}/мес — разумная нагрузка. Проценты добавят ${fmtS(interest)} (${intPct}% от цели).`}
+  else if(monthly<amount*0.1){vcls='verdict-warn';vicon='ti-alert-triangle';vtxt=`<strong>Умеренная нагрузка.</strong> ${fmtS(monthly)}/мес — значительная сумма. Попробуйте увеличить срок.`}
+  else{vcls='verdict-hard';vicon='ti-alert-circle';vtxt=`<strong>Высокая нагрузка.</strong> ${fmtS(monthly)}/мес — существенно. Рекомендую увеличить срок или снизить цель.`}
+  vd.className='verdict '+vcls;
+  vd.querySelector('i').className='ti '+vicon;
+  document.getElementById('verdictText').innerHTML=vtxt;
+  drawScenarios(amount,years,saved);
+  drawMainChart(amount,years,saved);
+  drawInstruments(years);
+  document.getElementById('tips').innerHTML='<strong>Совет эксперта:</strong> '+GOALS[goal].tip;
+}
+function drawScenarios(amount,years,saved){
+  const scenarios=[
+    {id:'cons',name:'Консервативный',icon:'ti-shield',rate:Math.max(1,S.rate-3),color:'#2d8a5e',fillColor:'rgba(45,138,94,0.15)',best:false},
+    {id:'base',name:'Умеренный',icon:'ti-chart-line',rate:S.rate,color:'#1a4a7a',fillColor:'rgba(26,74,122,0.15)',best:true},
+    {id:'aggr',name:'Агрессивный',icon:'ti-rocket',rate:S.rate+5,color:'#b03030',fillColor:'rgba(176,48,48,0.15)',best:false},
+  ];
+  const grid=document.getElementById('scenarioGrid');
+  grid.innerHTML='';
+  scenarios.forEach((sc,idx)=>{
+    const monthly=calcM(amount,years,sc.rate,saved);
+    const totalContrib=monthly*years*12+saved;
+    const interest=Math.max(0,amount-totalContrib);
+    const intPct=Math.round(interest/amount*100);
+    const labels=[];
+    for(let y=0;y<=years;y++)labels.push(y===0?'0':y+'л');
+    const{contribs,totals}=buildSeries(years,sc.rate,saved,monthly);
+    const canvasId='scChart'+idx;
+    const card=document.createElement('div');
+    card.className='sc-card'+(sc.best?' best':'');
+    card.innerHTML=`<div class="sc-header"><div class="sc-name"><i class="ti ${sc.icon}" style="color:${sc.color}"></i>${sc.name}</div>${sc.best?'<span class="sc-badge">Базовый</span>':''}</div><div class="sc-rate">${sc.rate.toFixed(1)}% год.</div><div class="sc-monthly">${fmtS(monthly)}/мес</div><div class="sc-label">ежемесячный взнос</div><div class="sc-chart-wrap"><canvas id="${canvasId}"></canvas></div><div class="sc-stats"><div class="sc-stat"><div class="sl">Взносы</div><div class="sv">${fmtS(totalContrib)}</div></div><div class="sc-stat"><div class="sl">Проценты</div><div class="sv">${fmtS(interest)} (${intPct}%)</div></div></div>`;
+    grid.appendChild(card);
+    if(scCharts[idx])scCharts[idx].destroy();
+    requestAnimationFrame(()=>{
+      scCharts[idx]=new Chart(document.getElementById(canvasId),{type:'line',data:{labels,datasets:[{label:'Взносы',data:contribs,borderColor:sc.color,backgroundColor:sc.fillColor,borderWidth:1.5,pointRadius:0,fill:true,tension:0.35,borderDash:[4,3]},{label:'Итого',data:totals,borderColor:sc.color,backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:0.35},{label:'Цель',data:Array(years+1).fill(amount),borderColor:'#e07020',backgroundColor:'transparent',borderWidth:1,pointRadius:0,fill:false,borderDash:[5,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:true,backgroundColor:'#0d2a4a',titleColor:'#deeaf7',bodyColor:'#b0d0f0',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmtS(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#5a7a9a',font:{size:10},maxTicksLimit:6},grid:{color:'rgba(26,74,122,0.12)'}},y:{ticks:{color:'#5a7a9a',font:{size:10},callback:v=>fmtS(v),maxTicksLimit:5},grid:{color:'rgba(26,74,122,0.12)'}}}}});
+    });
+  });
+}
+function drawMainChart(amount,years,saved){
+  const labels=[];
+  for(let y=0;y<=years;y++)labels.push(y===0?'Сейчас':y+'л');
+  const rCons=Math.max(1,S.rate-3),rBase=S.rate,rAggr=S.rate+5;
+  const mCons=calcM(amount,years,rCons,saved);
+  const mBase=calcM(amount,years,rBase,saved);
+  const mAggr=calcM(amount,years,rAggr,saved);
+  const{totals:tCons}=buildSeries(years,rCons,saved,mCons);
+  const{totals:tBase}=buildSeries(years,rBase,saved,mBase);
+  const{totals:tAggr}=buildSeries(years,rAggr,saved,mAggr);
+  if(mainChart)mainChart.destroy();
+  mainChart=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels,datasets:[{label:'Консервативный',data:tCons,borderColor:'#2d8a5e',backgroundColor:'rgba(45,138,94,0.07)',borderWidth:2,pointRadius:0,fill:true,tension:0.3,borderDash:[5,3]},{label:'Умеренный',data:tBase,borderColor:'#1a4a7a',backgroundColor:'rgba(26,74,122,0.07)',borderWidth:2.5,pointRadius:0,fill:true,tension:0.3},{label:'Агрессивный',data:tAggr,borderColor:'#b03030',backgroundColor:'rgba(176,48,48,0.07)',borderWidth:2,pointRadius:0,fill:true,tension:0.3,borderDash:[3,2]},{label:'Цель',data:Array(years+1).fill(amount),borderColor:'#e07020',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,fill:false,borderDash:[8,5]}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d2a4a',borderColor:'#5a9ad0',borderWidth:1,titleColor:'#deeaf7',bodyColor:'#b0d0f0',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmtS(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#4a6a8a',font:{size:11},maxTicksLimit:10},grid:{color:'rgba(26,74,122,0.15)'}},y:{ticks:{color:'#4a6a8a',font:{size:11},callback:v=>fmtS(v)},grid:{color:'rgba(26,74,122,0.15)'}}}},});
+}
+function drawInstruments(years){
+  let insts=[];
+  if(years<=3){insts=[{icon:'ti-building-bank',name:'Накопительный счёт',why:'Ежедневное начисление %, высокая ликвидность. Ставки до 18% в рублях (Т-Банк, Сбер, ВТБ).',risk:'low',rl:'Низкий риск'},{icon:'ti-certificate',name:'ОФЗ краткосрочные',why:'Государственные облигации до 3 лет. Надёжно, доходность выше вклада. Покупаются на Мосбирже от 1 000 ₽.',risk:'low',rl:'Низкий риск'},{icon:'ti-coins',name:'Вклад с капитализацией',why:'Фиксированная ставка, страховка АСВ до 1,4 млн ₽. Подходит как стабильная база накоплений.',risk:'low',rl:'Низкий риск'},{icon:'ti-chart-area',name:'БПИФ денежного рынка',why:'LQDT (ВИМ), SBMM (Сбер), AKMM (Альфа): следует за ключевой ставкой, вывод за 1 торговый день.',risk:'low',rl:'Низкий риск'}];}
+  else if(years<=7){insts=[{icon:'ti-certificate',name:'ОФЗ среднесрочные',why:'Облигации 3–7 лет. Купонный доход + рост тела. Примеры: ОФЗ-ПД 26226, 26228.',risk:'low',rl:'Низкий риск'},{icon:'ti-building-bank',name:'ИИС тип А',why:'Налоговый вычет 13% от взноса (до 52 000 ₽/год). Подходит при официальном доходе.',risk:'med',rl:'Средний риск'},{icon:'ti-chart-bar',name:'БПИФ облигаций',why:'SBRB (Сбер), OBLG (ВИМ) — диверсифицированный портфель корпоративных бондов на Мосбирже.',risk:'med',rl:'Средний риск'},{icon:'ti-trending-up',name:'Смешанный портфель',why:'60% облигации (ОФЗ + корп.) + 40% акции голубых фишек. Баланс роста и защиты.',risk:'med',rl:'Средний риск'}];}
+  else{insts=[{icon:'ti-building-bank',name:'ИИС тип Б',why:'Освобождение от НДФЛ с прибыли. Идеален для долгосрочных вложений в акции.',risk:'med',rl:'Средний риск'},{icon:'ti-chart-pie',name:'БПИФ на акции',why:'SBMX (Сбер), TMOS (Т-Банк) — индексные фонды Мосбиржи. На 10+ лет обгоняют инфляцию.',risk:'high',rl:'Высокий риск'},{icon:'ti-chart-pie',name:'Дивидендные акции',why:'Пассивный доход + рост тела. Примеры: Сбер, Лукойл, Татнефть. Реинвестирование — мощный рычаг.',risk:'high',rl:'Высокий риск'},{icon:'ti-building-community',name:'ЗПИФ недвижимости',why:'Фонды на коммерческую недвижимость без порога входа. Примеры: ЗПИФ «Парус», «Рентал Про» на Мосбирже.',risk:'med',rl:'Средний риск'}];}
+  document.getElementById('instruments').innerHTML=insts.map(i=>{const bc=i.risk==='low'?'badge-low':i.risk==='med'?'badge-med':'badge-high';return`<div class="inst-card"><div class="inst-top"><i class="ti ${i.icon}"></i><span class="inst-name">${i.name}</span></div><div class="inst-why">${i.why}</div><span class="inst-badge ${bc}">${i.rl}</span></div>`;}).join('');
+}
+function exportPDF(){
+  const g=GOALS[S.goal];
+  const monthly=calcM(S.amount,S.years,S.rate,S.saved);
+  const totalContrib=monthly*S.years*12+S.saved;
+  const interest=Math.max(0,S.amount-totalContrib);
+  const d=new Date();
+  const sc=[{n:'Консервативный',r:Math.max(1,S.rate-3)},{n:'Умеренный',r:S.rate,base:true},{n:'Агрессивный',r:S.rate+5}];
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Финансовый план — ${g.label}</title>
+  <style>body{font-family:Arial,sans-serif;color:#0d2a4a;margin:40px;max-width:680px}h1{color:#1a4a7a;font-size:22px;margin-bottom:4px}.sub{color:#4a6a8a;font-size:13px;margin-bottom:28px}h2{color:#1a4a7a;font-size:15px;margin:24px 0 10px;border-bottom:2px solid #c0d8f0;padding-bottom:6px}table{width:100%;border-collapse:collapse;margin-bottom:16px}td,th{padding:8px 10px;border:1px solid #b8d0e8;font-size:13px}th{background:#deeaf7;font-weight:600;text-align:left}.sc{display:flex;gap:12px;margin-bottom:16px}.sc-box{flex:1;border:1px solid #aac4de;border-radius:8px;padding:12px;text-align:center}.sc-box.base{border:2px solid #1a4a7a;background:#eaf3fb}.lbl{font-size:11px;color:#4a6a8a}.val{font-size:18px;font-weight:700;color:#0a1e38}.footer{margin-top:36px;font-size:11px;color:#aaa;border-top:1px solid #ddd;padding-top:10px}</style>
+  </head><body>
+  <h1>Финансовый план: ${g.label}</h1>
+  <p class="sub">Составлен: ${d.toLocaleDateString('ru-RU')} | Валюта: ${curr().name} | Доходность: ${S.rate.toFixed(1)}% год.</p>
+  <h2>Параметры цели</h2>
+  <table><tr><th>Параметр</th><th>Значение</th></tr>
+  <tr><td>Цель</td><td>${g.label}</td></tr>
+  <tr><td>Сумма цели</td><td>${fmt(S.amount)}</td></tr>
+  <tr><td>Срок</td><td>${S.years} ${py(S.years)}</td></tr>
+  <tr><td>Базовая доходность</td><td>${S.rate.toFixed(1)}% год.</td></tr>
+  <tr><td>Инфляция</td><td>${S.infl.toFixed(1)}%</td></tr>
+  <tr><td>Уже накоплено</td><td>${fmt(S.saved)}</td></tr></table>
+  <h2>Базовый результат</h2>
+  <table><tr><th>Показатель</th><th>Значение</th></tr>
+  <tr><td>Ежемесячный взнос</td><td><strong>${fmt(monthly)}</strong></td></tr>
+  <tr><td>Всего взносов за период</td><td>${fmt(totalContrib)}</td></tr>
+  <tr><td>Доход от процентов</td><td>${fmt(interest)}</td></tr></table>
+  <h2>Три сценария</h2>
+  <div class="sc">${sc.map(s=>{const m=calcM(S.amount,S.years,s.r,S.saved);return`<div class="sc-box${s.base?' base':''}"><div class="lbl">${s.n}</div><div style="font-size:11px;color:#888">${s.r.toFixed(1)}% год.</div><div class="val">${fmt(m)}</div><div class="lbl">в месяц</div></div>`;}).join('')}</div>
+  <h2>Рекомендации</h2><p style="font-size:13px;line-height:1.6;color:#0d2a4a">${g.tip}</p>
+  <div class="footer">Документ носит информационный характер и не является индивидуальной инвестиционной рекомендацией. Прошлые результаты не гарантируют будущих доходов.</div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),600);
+}
+setGoal('pension',document.querySelector('.gb.active'));
+</script>
+</body>
+</html>

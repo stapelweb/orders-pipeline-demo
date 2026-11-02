@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 Генератор игр для детей</title>
+<meta name="description" content="Генератор игр для детей: подбирает игру под возраст, место и настроение, понравившиеся сохраняются в избранное.">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#FFF8F0;
+  --yellow:#FFD600;
+  --yellow-dark:#E6C000;
+  --orange:#FF6B2B;
+  --orange-dark:#E55520;
+  --pink:#FF3D7F;
+  --pink-light:#FFE4EF;
+  --blue:#2979FF;
+  --blue-light:#E3EEFF;
+  --teal:#00BFA5;
+  --teal-light:#E0F7F4;
+  --purple:#7C3AED;
+  --purple-light:#EDE9FE;
+  --green:#2E7D32;
+  --green-light:#E8F5E9;
+  --ink:#1A1014;
+  --ink2:#4A3840;
+  --card:#FFFFFF;
+  --border:rgba(0,0,0,0.1);
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Nunito Sans',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+}
+
+/* ─── NOISE TEXTURE ─── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── LAYOUT ─── */
+.shell{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:290px;
+  flex-shrink:0;
+  background:var(--ink);
+  padding:2rem 1.5rem;
+  position:sticky;top:0;
+  height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+
+.logo{
+  font-family:'Nunito',sans-serif;
+  font-size:26px;font-weight:900;
+  color:var(--yellow);
+  letter-spacing:-.5px;
+  margin-bottom:.25rem;
+  display:flex;align-items:center;gap:8px;
+}
+
+.logo-sub{
+  font-size:12px;
+  color:rgba(255,255,255,.4);
+  margin-bottom:2rem;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+
+/* Big nav buttons */
+.nav-btn{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  padding:14px 16px;
+  border-radius:16px;
+  font-family:'Nunito',sans-serif;
+  font-size:16px;font-weight:800;
+  cursor:pointer;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  margin-bottom:8px;
+  border:none;
+  text-align:left;
+  background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.7);
+}
+
+.nav-btn:hover{
+  background:rgba(255,255,255,.13);
+  color:#fff;
+  transform:translateX(4px);
+}
+
+.nav-btn.active{
+  background:var(--yellow);
+  color:var(--ink);
+  box-shadow:0 6px 20px rgba(255,214,0,.35);
+  transform:translateX(4px);
+}
+
+.nav-icon{font-size:22px}
+
+.nav-spacer{flex:1}
+
+.sidebar-tip{
+  background:rgba(255,255,255,.06);
+  border-radius:14px;
+  padding:14px;
+  font-size:12px;
+  color:rgba(255,255,255,.4);
+  line-height:1.6;
+  margin-top:1rem;
+}
+
+/* Fav badge */
+.fav-badge{
+  margin-left:auto;
+  background:var(--pink);
+  color:#fff;
+  font-size:11px;
+  font-weight:800;
+  padding:2px 8px;
+  border-radius:20px;
+  display:none;
+}
+
+/* ─── MAIN ─── */
+.main{
+  flex:1;min-width:0;
+  padding:2rem 2rem 5rem;
+  max-width:800px;
+}
+
+/* ─── PANEL ─── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ─── HEADING ─── */
+.page-title{
+  font-family:'Nunito',sans-serif;
+  font-size:30px;font-weight:900;
+  color:var(--ink);
+  margin-bottom:.3rem;
+  letter-spacing:-.5px;
+}
+
+.page-sub{font-size:14px;color:var(--ink2);margin-bottom:1.75rem}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--card);
+  border-radius:20px;
+  padding:1.5rem;
+  margin-bottom:16px;
+  border:2px solid rgba(0,0,0,0.06);
+  box-shadow:4px 4px 0 rgba(0,0,0,0.06);
+}
+
+.card-title{
+  font-family:'Nunito',sans-serif;
+  font-size:13px;font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink2);
+  margin-bottom:1rem;
+}
+
+/* ─── SELECTS ─── */
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+
+.field{display:flex;flex-direction:column;gap:5px}
+
+.field label{font-size:12px;font-weight:700;color:var(--ink2)}
+
+select{
+  font-family:'Nunito Sans',sans-serif;
+  font-size:14px;font-weight:600;
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  background:#fff;
+  color:var(--ink);
+  cursor:pointer;
+  transition:border-color .15s;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%234A3840' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  padding-right:32px;
+}
+
+select:focus{outline:none;border-color:var(--orange)}
+
+/* ─── LOCATION BUTTONS ─── */
+.loc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+.loc-btn{
+  border:2px solid var(--border);
+  border-radius:16px;
+  padding:14px 10px;
+  background:#fff;
+  color:var(--ink2);
+  font-family:'Nunito',sans-serif;
+  font-size:13px;font-weight:800;
+  cursor:pointer;
+  display:flex;flex-direction:column;
+  align-items:center;gap:6px;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  text-align:center;
+}
+
+.loc-emoji{font-size:26px}
+
+.loc-btn:hover{transform:translateY(-3px);border-color:var(--orange);box-shadow:0 6px 16px rgba(255,107,43,.2)}
+
+.loc-btn.active{
+  background:var(--orange);
+  border-color:var(--orange);
+  color:#fff;
+  box-shadow:0 6px 20px rgba(255,107,43,.4);
+  transform:translateY(-3px);
+}
+
+/* ─── FILTER CHIPS ─── */
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;margin-bottom:16px}
+
+.fchip{
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:11px 13px;
+  display:flex;
+  align-items:center;gap:9px;
+  cursor:pointer;
+  font-family:'Nunito',sans-serif;
+  font-size:13px;font-weight:800;
+  color:var(--ink);
+  background:#fff;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  user-select:none;
+}
+
+.fchip:hover{border-color:var(--orange);transform:translateY(-2px)}
+
+.fchip input{accent-color:var(--orange);width:16px;height:16px;flex-shrink:0;cursor:pointer}
+
+.fchip:has(input:checked){
+  background:var(--orange);
+  border-color:var(--orange);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(255,107,43,.35);
+  transform:translateY(-2px);
+}
+
+textarea{
+  width:100%;
+  font-family:'Nunito Sans',sans-serif;
+  font-size:14px;font-weight:600;
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:11px 13px;
+  background:#fff;
+  color:var(--ink);
+  resize:none;
+  line-height:1.55;
+  transition:border-color .15s;
+}
+
+textarea:focus{outline:none;border-color:var(--orange)}
+
+/* ─── BIG GENERATE BUTTON ─── */
+.gen-btn{
+  width:100%;
+  padding:20px;
+  font-family:'Nunito',sans-serif;
+  font-size:20px;font-weight:900;
+  letter-spacing:.02em;
+  border:none;
+  border-radius:20px;
+  background:var(--orange);
+  color:#fff;
+  cursor:pointer;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  box-shadow:0 8px 24px rgba(255,107,43,.45),0 4px 0 var(--orange-dark);
+  margin-top:6px;
+  position:relative;top:0;
+}
+
+.gen-btn:hover{
+  background:var(--orange-dark);
+  transform:translateY(-3px);
+  box-shadow:0 12px 32px rgba(255,107,43,.5),0 6px 0 var(--orange-dark);
+}
+
+.gen-btn:active{
+  transform:translateY(2px);
+  box-shadow:0 4px 12px rgba(255,107,43,.4),0 2px 0 var(--orange-dark);
+}
+
+.gen-btn:disabled{
+  background:#ccc;
+  box-shadow:none;
+  cursor:not-allowed;transform:none;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .7s linear infinite;display:inline-block}
+
+/* ─── RESULTS ─── */
+.results{margin-top:1.75rem}
+
+.loading-wrap{
+  text-align:center;padding:4rem 1rem;
+}
+
+.loading-emoji{
+  font-size:56px;display:block;margin-bottom:1rem;
+  animation:bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes bounce{
+  0%,100%{transform:translateY(0) rotate(-5deg)}
+  50%{transform:translateY(-14px) rotate(5deg)}
+}
+
+.loading-text{
+  font-family:'Nunito',sans-serif;
+  font-size:20px;font-weight:900;color:var(--ink);margin-bottom:6px;
+}
+
+.loading-sub{font-size:14px;color:var(--ink2)}
+
+/* ─── RESULTS BAR ─── */
+.res-bar{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin-bottom:16px;
+}
+
+.res-title{
+  font-family:'Nunito',sans-serif;
+  font-size:20px;font-weight:900;
+}
+
+.btn-sm{
+  font-family:'Nunito',sans-serif;
+  font-size:13px;font-weight:800;
+  padding:9px 16px;
+  border-radius:10px;
+  border:2px solid var(--border);
+  background:#fff;
+  color:var(--ink2);
+  cursor:pointer;
+  transition:all .15s;
+}
+
+.btn-sm:hover{border-color:var(--orange);color:var(--orange)}
+
+/* ─── STATS ─── */
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+
+.stat{
+  background:var(--yellow);
+  border-radius:14px;
+  padding:12px 20px;
+  flex:1;min-width:90px;
+  text-align:center;
+  box-shadow:0 4px 0 var(--yellow-dark);
+}
+
+.stat-n{
+  font-family:'Nunito',sans-serif;
+  font-size:26px;font-weight:900;
+  color:var(--ink);
+  display:block;
+}
+
+.stat-l{font-size:11px;font-weight:700;color:var(--ink2)}
+
+/* ─── GAME CARDS ─── */
+.game-card{
+  background:var(--card);
+  border:2px solid rgba(0,0,0,.07);
+  border-radius:20px;
+  margin-bottom:12px;
+  overflow:hidden;
+  transition:all .2s;
+  box-shadow:4px 4px 0 rgba(0,0,0,.06);
+}
+
+.game-card:hover{box-shadow:6px 6px 0 rgba(0,0,0,.09);transform:translateY(-2px)}
+
+.game-top{
+  padding:1rem 1.25rem;
+  cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;
+}
+
+.gnum{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--orange);
+  color:#fff;
+  font-family:'Nunito',sans-serif;
+  font-size:14px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 3px 0 var(--orange-dark);
+}
+
+.ginfo{flex:1;min-width:0}
+
+.gtitle{
+  font-family:'Nunito',sans-serif;
+  font-size:16px;font-weight:900;
+  color:var(--ink);margin-bottom:6px;line-height:1.3;
+}
+
+.gmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+.badge{
+  font-size:11px;font-weight:800;
+  padding:3px 10px;
+  border-radius:20px;
+  white-space:nowrap;
+  font-family:'Nunito',sans-serif;
+}
+
+.gactions{display:flex;align-items:center;gap:6px;margin-left:4px;flex-shrink:0}
+
+.fav-btn{
+  width:34px;height:34px;
+  border-radius:50%;
+  border:2px solid var(--border);
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  color:#ccc;
+}
+
+.fav-btn:hover{border-color:var(--pink);color:var(--pink);transform:scale(1.15)}
+.fav-btn.saved{border-color:var(--pink);color:var(--pink);background:var(--pink-light)}
+
+.chevron{
+  width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink2);font-size:20px;
+  transition:transform .2s;cursor:pointer;
+}
+
+.chevron.open{transform:rotate(180deg)}
+
+.game-body{
+  display:none;
+  padding:0 1.25rem 1.25rem;
+  border-top:2px solid rgba(0,0,0,.05);
+}
+
+.game-body.open{display:block}
+
+.gdesc{
+  font-size:14px;font-weight:600;
+  color:var(--ink2);line-height:1.65;
+  margin:14px 0;
+  padding:12px 16px;
+  background:var(--bg);
+  border-radius:12px;
+  border-left:4px solid var(--orange);
+}
+
+.steps-label{
+  font-size:11px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink2);margin-bottom:10px;
+}
+
+.step{
+  display:flex;gap:12px;
+  margin-bottom:10px;align-items:flex-start;
+}
+
+.step-n{
+  width:26px;height:26px;
+  border-radius:50%;
+  background:var(--blue);
+  color:#fff;
+  font-family:'Nunito',sans-serif;
+  font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+  box-shadow:0 2px 0 #1a5fd4;
+}
+
+.step-text{font-size:13px;font-weight:600;color:var(--ink2);line-height:1.6}
+
+/* ─── FAVORITES ─── */
+.empty-state{
+  text-align:center;padding:4rem 1rem;color:var(--ink2);
+}
+
+.empty-icon{font-size:64px;display:block;margin-bottom:1rem;
+  animation:wobble 3s ease-in-out infinite}
+
+@keyframes wobble{
+  0%,100%{transform:rotate(-8deg)}
+  50%{transform:rotate(8deg)}
+}
+
+.empty-title{font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--ink);margin-bottom:6px}
+.empty-sub{font-size:14px}
+
+/* ─── ERROR ─── */
+.err-box{
+  background:#FFF0F0;
+  color:#991B1B;
+  border-radius:16px;
+  padding:16px 20px;
+  font-size:14px;font-weight:600;
+  line-height:1.5;margin-top:16px;
+  border:2px solid #FECACA;
+}
+
+/* ─── SETTINGS ─── */
+.input-field{
+  font-family:'Nunito Sans',sans-serif;
+  font-size:14px;font-weight:600;
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:11px 13px;
+  background:#fff;
+  color:var(--ink);
+  width:100%;
+  transition:border-color .15s;
+}
+
+.input-field:focus{outline:none;border-color:var(--orange)}
+
+.big-clear-btn{
+  padding:14px 22px;
+  font-family:'Nunito',sans-serif;
+  font-size:15px;font-weight:900;
+  border-radius:14px;
+  border:2px solid var(--pink);
+  background:var(--pink-light);
+  color:var(--pink);
+  cursor:pointer;
+  transition:all .18s;
+}
+
+.big-clear-btn:hover{
+  background:var(--pink);color:#fff;
+  box-shadow:0 6px 18px rgba(255,61,127,.35);
+  transform:translateY(-2px);
+}
+
+/* ─── MOBILE HEADER ─── */
+.mobile-header{
+  display:none;
+  background:var(--ink);
+  color:#fff;
+  padding:1rem 1.25rem;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+
+.mobile-logo{
+  font-family:'Nunito',sans-serif;
+  font-size:18px;font-weight:900;
+  color:var(--yellow);
+}
+
+.mobile-menu-btn{
+  background:rgba(255,255,255,.1);
+  border:none;
+  color:#fff;
+  font-size:22px;cursor:pointer;
+  padding:6px 10px;border-radius:8px;
+}
+
+.mobile-nav{
+  display:none;
+  background:var(--ink);
+  padding:.75rem 1rem 1rem;
+  flex-wrap:wrap;gap:8px;
+}
+
+.mobile-nav.open{display:flex}
+
+.mobile-nav-btn{
+  font-family:'Nunito',sans-serif;
+  font-size:14px;font-weight:800;
+  padding:10px 18px;
+  border-radius:12px;
+  border:2px solid rgba(255,255,255,.2);
+  background:none;
+  color:rgba(255,255,255,.7);
+  cursor:pointer;
+  transition:all .15s;
+}
+
+.mobile-nav-btn.active{
+  background:var(--yellow);
+  border-color:var(--yellow);
+  color:var(--ink);
+}
+
+/* ─── TYPE COLORS ─── */
+.type-creative{background:#EEF3FE;color:#2D4DAE}
+.type-active{background:#FFF3E0;color:#E65100}
+.type-board{background:#E0F7F4;color:#00695C}
+.type-role{background:#FCE4EC;color:#AD1457}
+.type-dev{background:#E8F5E9;color:#2E7D32}
+.type-calm{background:#FFF8E1;color:#F57F17}
+
+@media(max-width:700px){
+  .sidebar{display:none}
+  .mobile-header{display:flex}
+  .shell{flex-direction:column}
+  .main{padding:1.25rem 1rem 4rem;max-width:100%}
+  .loc-grid{grid-template-columns:repeat(2,1fr)}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/games.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/games.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+<h1 style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0">Генератор игр для детей</h1>
+
+<div class="mobile-header">
+  <span class="mobile-logo">🎮 Игры для детей</span>
+  <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+</div>
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-btn active" onclick="showPanel('generate',this)">✨ Генератор</button>
+  <button class="mobile-nav-btn" onclick="showPanel('favorites',this)">❤️ Избранное</button>
+  <button class="mobile-nav-btn" onclick="showPanel('about',this)">💡 О приложении</button>
+</div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">🎮 GameGen</div>
+    <div class="logo-sub">Генератор игр для детей</div>
+
+    <button class="nav-btn active" id="nav-generate" onclick="showPanel('generate',this)">
+      <span class="nav-icon">✨</span> Генератор
+    </button>
+    <button class="nav-btn" id="nav-favorites" onclick="showPanel('favorites',this)">
+      <span class="nav-icon">❤️</span> Избранное
+      <span class="fav-badge" id="fav-count">0</span>
+    </button>
+    <button class="nav-btn" id="nav-about" onclick="showPanel('about',this)">
+      <span class="nav-icon">💡</span> О приложении
+    </button>
+
+    <div class="nav-spacer"></div>
+
+    <div class="sidebar-tip">
+      🚀 Без интернета и API — все игры уже встроены в приложение. Работает офлайн!
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── GENERATE PANEL ── -->
+    <div class="panel active" id="panel-generate">
+      <div class="page-title">🎲 Генератор игр</div>
+      <div class="page-sub">Настройте параметры — и получите 10 идей с пошаговыми инструкциями</div>
+
+      <div class="card">
+        <div class="card-title">👶 Основные параметры</div>
+        <div class="grid3">
+          <div class="field">
+            <label for="age">Возраст ребёнка</label>
+            <select id="age">
+              <option value="2-3">2–3 года</option>
+              <option value="4-5">4–5 лет</option>
+              <option value="6-7" selected>6–7 лет</option>
+              <option value="8-10">8–10 лет</option>
+              <option value="11-13">11–13 лет</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="kids">Детей</label>
+            <select id="kids">
+              <option value="1" selected>Один</option>
+              <option value="2">Двое</option>
+              <option value="3">Трое и больше</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="dur">Время</label>
+            <select id="dur">
+              <option value="30">30 минут</option>
+              <option value="60">1 час</option>
+              <option value="120" selected>2 часа</option>
+              <option value="240">3–4 часа</option>
+              <option value="480">Весь день</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card-title">📍 Где находитесь</div>
+        <div class="loc-grid" id="loc-tags">
+          <button class="loc-btn active" data-v="home">
+            <span class="loc-emoji">🏠</span>Дома
+          </button>
+          <button class="loc-btn" data-v="outdoor">
+            <span class="loc-emoji">🌳</span>На улице
+          </button>
+          <button class="loc-btn" data-v="car">
+            <span class="loc-emoji">🚗</span>В машине
+          </button>
+          <button class="loc-btn" data-v="cafe">
+            <span class="loc-emoji">🛍️</span>В кафе
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 Фильтры и предпочтения</div>
+        <div class="filter-grid">
+          <label class="fchip"><input type="checkbox" id="f-quiet"> 🤫 Тихие</label>
+          <label class="fchip"><input type="checkbox" id="f-active"> 🏃 Активные</label>
+          <label class="fchip"><input type="checkbox" id="f-nomat"> 👐 Без материалов</label>
+          <label class="fchip"><input type="checkbox" id="f-solo"> 🧒 Без родителя</label>
+          <label class="fchip"><input type="checkbox" id="f-creative"> 🎨 Творческие</label>
+          <label class="fchip"><input type="checkbox" id="f-dev"> 🧠 Развивающие</label>
+        </div>
+      </div>
+
+      <button class="gen-btn" id="gen-btn" onclick="generate()">
+        <span id="gen-icon">✨</span>
+        <span id="gen-label">Придумать 10 игр!</span>
+      </button>
+
+      <div id="results"></div>
+    </div>
+
+    <!-- ── FAVORITES PANEL ── -->
+    <div class="panel" id="panel-favorites">
+      <div class="page-title">❤️ Избранное</div>
+      <div class="page-sub">Сохранённые игры — всегда под рукой</div>
+      <div id="fav-list"></div>
+      <div id="fav-actions" style="margin-top:16px;display:none">
+        <button class="big-clear-btn" onclick="clearFavorites()">🗑️ Очистить всё избранное</button>
+      </div>
+    </div>
+
+    <!-- ── ABOUT PANEL ── -->
+    <div class="panel" id="panel-about">
+      <div class="page-title">💡 О приложении</div>
+      <div class="page-sub">Всё, что нужно знать</div>
+
+      <div class="card">
+        <div class="card-title">🚀 Как работает</div>
+        <p style="font-size:14px;font-weight:600;color:var(--ink2);line-height:1.7;margin-bottom:12px">
+          Приложение работает полностью офлайн — без интернета и без API-ключей. Встроенная база содержит сотни игровых сценариев для детей разного возраста и разных ситуаций.
+        </p>
+        <p style="font-size:14px;font-weight:600;color:var(--ink2);line-height:1.7">
+          Умный алгоритм подбирает 10 игр под ваши параметры: возраст, количество детей, место и предпочтения.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎮 Типы игр в базе</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <span class="badge type-creative" style="padding:6px 14px;font-size:13px">🎨 Творческие</span>
+          <span class="badge type-active" style="padding:6px 14px;font-size:13px">🏃 Активные</span>
+          <span class="badge type-board" style="padding:6px 14px;font-size:13px">🎲 Настольные</span>
+          <span class="badge type-role" style="padding:6px 14px;font-size:13px">🎭 Ролевые</span>
+          <span class="badge type-dev" style="padding:6px 14px;font-size:13px">🧠 Развивающие</span>
+          <span class="badge type-calm" style="padding:6px 14px;font-size:13px">🤫 Спокойные</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 Версия</div>
+        <p style="font-size:14px;font-weight:600;color:var(--ink2);line-height:1.7">
+          Версия 3.0 — офлайн-режим, без API, яркий дизайн, избранное, фильтры.
+        </p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── GAME DATABASE ───────────────────────────────────────────────────────────
+const GAMES_DB = {
+  home: {
+    "2-3": [
+      {title:"Пузырчатая дорожка",duration:"15–25 мин",type:"активная",solo:false,desc:"Малыш топает по пузырчатой упаковке — тренирует координацию и тактильные ощущения, детям обожают этот хруст!",steps:["Разложите пузырчатую упаковку дорожкой на полу.","Покажите ребёнку как весело топать по ней.","Устройте соревнование: кто громче хрустит?","Попробуйте пройти на цыпочках или попрыгать.","Соберите упаковку вместе после игры."]},
+      {title:"Поиск сокровищ",duration:"20–30 мин",type:"развивающая",solo:false,desc:"Спрячьте игрушки по комнате и нарисуйте простую карту. Малыш учится ориентироваться в пространстве.",steps:["Выберите 5–6 небольших игрушек.","Спрячьте их на видных местах (под стулом, за подушкой).","Нарисуйте простые значки: стул, диван, шкаф.","Дайте ребёнку карту и ищите вместе.","Найдите все — победа! Можно поменяться ролями."]},
+      {title:"Пластилиновый зоопарк",duration:"30–45 мин",type:"творческая",solo:true,desc:"Лепим животных из пластилина — развивает мелкую моторику и воображение.",steps:["Возьмите пластилин нескольких цветов.","Покажите простые формы: шарик, колбаска, лепёшка.","Слепите вместе простое животное: улитка, гусеница.","Пусть ребёнок лепит, что хочет — хвалите всё!","Устройте выставку пластилинового зоопарка."]},
+      {title:"Музыкальные инструменты из кухни",duration:"20–35 мин",type:"творческая",solo:false,desc:"Крупа в банке — маракас, кастрюля — барабан! Малыш создаёт настоящий оркестр.",steps:["Наберите кастрюли, крышки, банки, ложки.","Насыпьте крупу или горох в пластиковые контейнеры.","Покажите как барабанить, греметь, звенеть.","Сыграйте простой ритм — малыш повторяет.","Устройте концерт для мягких игрушек."]},
+      {title:"Домик из подушек",duration:"25–40 мин",type:"ролевая",solo:false,desc:"Строим крепость из подушек и одеял — классика, которая никогда не надоедает!",steps:["Сдвиньте диванные подушки в одно место.","Накройте одеялом — получилась крыша.","Возьмите внутрь фонарик и мягкие игрушки.","Разыграйте сцену: зимовка медведей, космос.","Живите в домике сколько хочется!"]},
+      {title:"Рисование пальчиками",duration:"20–30 мин",type:"творческая",solo:true,desc:"Пальчиковые краски — самый честный способ рисовать. Свобода, яркость, радость!",steps:["Расстелите клеёнку или газеты на полу/столе.","Наденьте старую одежду или фартук.","Налейте краски в тарелочки.","Покажите как макать пальцы и рисовать.","Пусть рисует что хочет — это искусство!"]},
+      {title:"Игра в магазин",duration:"25–40 мин",type:"ролевая",solo:false,desc:"Продукты из кухни, монетки из бумаги — малыш учится считать и общаться через ролевую игру.",steps:["Соберите продукты: коробки, баночки, овощи.","Сделайте «деньги» из бумаги.","Один — продавец, другой — покупатель.","Расставьте товары на полках (стульях).","Покупайте, продавайте, давайте сдачу."]},
+      {title:"Сортировка по цвету",duration:"15–25 мин",type:"развивающая",solo:true,desc:"Раскладываем пуговицы, кубики, носки по цветам — учимся классифицировать предметы.",steps:["Подготовьте разноцветные предметы: кубики, крышки, пуговицы.","Поставьте несколько мисочек.","Назовите цвет вместе и положите первый предмет.","Пусть ребёнок сортирует самостоятельно.","Похвалите результат и пересчитайте каждую кучку."]},
+      {title:"Танцы с лентами",duration:"15–25 мин",type:"активная",solo:false,desc:"Привяжите ленты к палочкам или держите в руках — получается волшебный танец!",steps:["Найдите ленточки, шарфы или полоски ткани.","Включите весёлую музыку.","Покажите как махать и кружиться с лентами.","Придумайте образы: бабочка, дракон, морские волны.","Сделайте совместный танец-шоу."]},
+      {title:"Строительство из кубиков",duration:"30–45 мин",type:"развивающая",solo:true,desc:"Башни, дороги, города — конструктор развивает пространственное мышление и терпение.",steps:["Высыпьте все кубики в одно место.","Начните строить вместе простую башню.","Предложите тему: зоопарк, гараж, замок.","Помогайте, но не делайте за ребёнка.","Сфотографируйте результат перед уборкой."]}
+    ],
+    "4-5": [
+      {title:"Театр теней",duration:"25–40 мин",type:"ролевая",solo:false,desc:"Фонарик + руки = настоящий театр! Дети учатся рассказывать истории через образы.",steps:["Затемните комнату и направьте фонарик на стену.","Покажите простые фигуры: собака, утка, кролик.","Придумайте короткую историю из 2–3 персонажей.","Разыграйте спектакль для мягких игрушек.","Снимите 'постановку' на телефон."]},
+      {title:"Кулинарная лаборатория",duration:"40–60 мин",type:"творческая",solo:false,desc:"Делаем бутерброды или лепим печенье — ребёнок учится готовить и гордится результатом.",steps:["Выберите простой рецепт: бутерброды, фруктовый салат.","Помойте руки вместе — это важный ритуал.","Дайте ребёнку нарезать мягкие продукты детским ножом.","Украшайте еду вместе: фигурки из овощей.","Съешьте вместе то, что приготовили!"]},
+      {title:"Охота за сокровищами",duration:"30–50 мин",type:"развивающая",solo:false,desc:"Записки с загадками ведут к следующей подсказке. Финал — маленький приз!",steps:["Подготовьте 5 записок с простыми загадками.","Спрячьте записки по квартире, последняя — у приза.","Дайте первую подсказку с торжественным видом.","Помогайте читать, но не подсказывайте ответ.","Приз: наклейка, конфета, любая мелочь."]},
+      {title:"Настольный боулинг",duration:"20–35 мин",type:"активная",solo:false,desc:"Пластиковые бутылки как кегли, мячик из носков — спортивный азарт дома!",steps:["Наполните 6–8 пластиковых бутылок немного водой.","Расставьте треугольником на полу.","Скатайте носки в плотный шарик.","Катайте с метки 2–3 метра.","Считайте очки, делайте страйки, меняйтесь."]},
+      {title:"Рисование историй",duration:"30–45 мин",type:"творческая",solo:true,desc:"Один начинает рисунок, другой продолжает — получается смешная общая история на бумаге.",steps:["Возьмите большой лист бумаги.","Нарисуйте один персонаж или предмет.","Ребёнок добавляет что-то своё.","По очереди добавляйте детали.","Придумайте название истории и подпишите авторов."]},
+      {title:"Игра-ходилка своими руками",duration:"40–60 мин",type:"настольная",solo:false,desc:"Рисуем игровое поле, делаем кубик — и играем в свою уникальную настолку!",steps:["Нарисуйте дорожку из клеток на картоне.","Добавьте клетки: 'прыгни 3 раза', 'пропусти ход'.","Сделайте кубик из коробки или возьмите настоящий.","Используйте монетки или фишки разного цвета.","Играйте — кто первый дойдёт до финиша?"]},
+      {title:"Йога для детей",duration:"20–30 мин",type:"активная",solo:false,desc:"Поза кошки, собаки, дерева — детская йога весёлая и не требует подготовки.",steps:["Расстелите коврики или одеяла.","Покажите позу горы: стоим прямо как деревья.","Поза кошки: выгибаем спину.","Поза собаки мордой вниз.","Завершите позой звезды — растянулись на полу."]},
+      {title:"Конструктор из картона",duration:"45–60 мин",type:"творческая",solo:true,desc:"Коробки от обуви и молоко — строим настоящий город или замок.",steps:["Соберите картонные коробки разного размера.","Скрепите скотчем как хочется.","Прорежьте окна и двери.","Раскрасьте красками или маркерами.","Населите жителями из бумаги или игрушек."]},
+      {title:"Слова-ассоциации",duration:"15–25 мин",type:"развивающая",solo:false,desc:"Называем слово — ребёнок говорит первое что придёт в голову. Развивает речь и мышление.",steps:["Объясните правило: говорим первое слово, что придёт в голову.","Начните: 'море' — ребёнок: 'рыба' — вы: 'жарить'...","Не исправляйте, просто продолжайте цепочку.","Запишите самые смешные цепочки.","Разберите потом: почему такие ассоциации?"]},
+      {title:"Прятки с подсказками",duration:"20–35 мин",type:"активная",solo:false,desc:"Классические прятки, но прячущийся иногда подсказывает звуком или направлением.",steps:["Один прячется, другой считает до 20.","Прячущийся может иногда тихонько хлопать.","Ищущий может задать 3 вопроса: 'ты в кухне?'.","Найденный — следующий прячется.","Можно прятать игрушки вместо людей."]}
+    ],
+    "6-7": [
+      {title:"Квест по квартире",duration:"40–60 мин",type:"развивающая",solo:false,desc:"Серия загадок и испытаний ведёт к финальному призу. Ребёнок развивает логику и читает с интересом!",steps:["Придумайте 7–8 загадок, каждая ведёт к следующему месту.","Пример: 'Здесь хранится холод' → холодильник.","Спрячьте записки заранее.","Дайте стартовую подсказку торжественно.","Финал: приз или просто торжество победы!"]},
+      {title:"Домашний кинотеатр с попкорном",duration:"60–90 мин",type:"спокойная",solo:true,desc:"Сделайте атмосферу кино дома: билеты, попкорн, выключенный свет. Особенный вечер!",steps:["Выберите фильм вместе заранее.","Сделайте 'билеты' из бумаги и оторвите их при входе.","Приготовьте попкорн или другой снек.","Выключите лишний свет, устройтесь уютно.","После фильма обсудите: что понравилось?"]},
+      {title:"Эксперименты с водой и красками",duration:"30–50 мин",type:"развивающая",solo:false,desc:"Смешиваем цвета, делаем молочные взрывы — это настоящая наука через игру!",steps:["Налейте воду в несколько стаканов.","Капните разные пищевые красители.","Смешивайте: что получается из красного и жёлтого?","Налейте молоко в тарелку, капните краску, добавьте каплю мыла.","Запишите результаты в 'журнал учёного'."]},
+      {title:"Настольная игра своими руками",duration:"50–70 мин",type:"настольная",solo:false,desc:"Ребёнок сам придумывает и рисует игру — это вдвойне интереснее покупной!",steps:["Обсудите тему: космос, пираты, животные.","Нарисуйте поле с клетками на картоне.","Придумайте правила вместе и запишите.","Сделайте карточки с заданиями.","Сыграйте в изобретение ребёнка!"]},
+      {title:"Строительство из спагетти",duration:"30–45 мин",type:"развивающая",solo:false,desc:"Высокая башня из спагетти и маршмеллоу — классический инженерный вызов для детей.",steps:["Дайте 20 сырых спагетти и 10 маршмеллоу.","Задача: построить самую высокую башню.","Спагетти — конструкция, маршмеллоу — соединения.","Дайте 20 минут на строительство.","Измерьте результат линейкой и похвалите."]},
+      {title:"Игра в детективов",duration:"40–60 мин",type:"ролевая",solo:false,desc:"Кто съел варенье? Ищем улики, опрашиваем свидетелей, делаем выводы!",steps:["Придумайте 'преступление': исчезла игрушка, пропал печеньку.","Оставьте ложные улики по квартире.","Дайте ребёнку блокнот для записей.","Разыграйте роль свидетеля — говорите загадочно.","Пусть выдвинет версию и объяснит улики."]},
+      {title:"Рисование вслепую",duration:"20–30 мин",type:"творческая",solo:false,desc:"Рисуем с закрытыми глазами — получается смешно и неожиданно, все хохочут!",steps:["Дайте лист бумаги и маркер.","Загадайте простой предмет: кошка, дом.","Ребёнок закрывает глаза и рисует не отрывая карандаш.","Откройте глаза — угадайте что получилось!","Меняйтесь ролями и сравните рисунки."]},
+      {title:"Математические игры с монетами",duration:"20–35 мин",type:"развивающая",solo:false,desc:"Считаем монетки, складываем, вычитаем — математика становится настоящей и понятной.",steps:["Высыпьте монеты разного номинала.","Задача 1: собери ровно 10 рублей разными способами.","Задача 2: у тебя 20 рублей, купи за 7 — сдача?","Придумывайте магазинные ситуации.","Усложняйте постепенно."]},
+      {title:"Оригами",duration:"30–45 мин",type:"спокойная",solo:true,desc:"Кораблик, лягушка, журавлик — японское искусство из бумаги развивает точность и терпение.",steps:["Возьмите квадратные листы бумаги.","Начните с простейшей фигуры — стрела или кораблик.","Показывайте шаг за шагом, не торопите.","Украсьте готовые фигуры маркерами.","Устройте запуск бумажных корабликов в ванне."]},
+      {title:"Пантомима",duration:"20–30 мин",type:"ролевая",solo:false,desc:"Показываем животных, профессии, действия без слов — остальные угадывают!",steps:["Напишите слова на карточках или говорите на ухо.","Объясните: молчим и показываем движениями.","Первый показывает, остальные угадывают.","Кто угадал — следующий показывает.","Можно делиться на команды и соревноваться."]}
+    ],
+    "8-10": [
+      {title:"Настоящая лаборатория",duration:"50–70 мин",type:"развивающая",solo:false,desc:"Вулкан из соды и уксуса, слайм, неньютоновская жидкость — дети в восторге от химии!",steps:["Выберите эксперимент: вулкан (сода + уксус + краска).","Подготовьте материалы и защиту стола.","Проведите эксперимент по шагам.","Обсудите: что произошло и почему?","Запишите в 'научный журнал' и нарисуйте схему."]},
+      {title:"Создание комикса",duration:"45–70 мин",type:"творческая",solo:true,desc:"Придумываем персонажей, рисуем панели, пишем диалоги — ребёнок создаёт собственную книгу!",steps:["Придумайте главного героя и его приключение.","Сложите лист пополам несколько раз — получится книжка.","Нарисуйте сцены в каждой ячейке.","Добавьте диалоги в 'облачках'.","Придумайте название и нарисуйте обложку."]},
+      {title:"Стратегические шашки с правилами",duration:"30–50 мин",type:"настольная",solo:false,desc:"Обычные шашки с дополнительными правилами: фишки с заданиями, обмен ходами.",steps:["Расставьте шашки как обычно.","Добавьте правило: срубив фишку — выполни задание (прыгни 5 раз).","Играйте по стандартным правилам шашек.","Обсуждайте стратегию вслух: почему этот ход?","После игры разберите ключевые решения."]},
+      {title:"Написание рассказа по картинкам",duration:"40–60 мин",type:"творческая",solo:true,desc:"Вырезаем случайные картинки из журналов и придумываем историю — безграничный полёт фантазии!",steps:["Вырежьте 8–10 разных картинок из журналов.","Разложите их случайным образом.","Задача: придумать историю, в которой есть ВСЕ картинки.","Записывайте или рассказывайте вслух.","Нарисуйте финальную сцену самостоятельно."]},
+      {title:"Квиз 'Кто больше знает'",duration:"30–45 мин",type:"развивающая",solo:false,desc:"Семейная викторина: родители против детей. Вопросы из разных областей — кто умнее?",steps:["Каждый пишет 10 вопросов на листочках.","Перемешайте и тяните по очереди.","За правильный ответ — 1 очко.","Сложные вопросы стоят 2 очка.","Победитель выбирает мультик или игру на вечер."]},
+      {title:"Архитектура будущего",duration:"50–70 мин",type:"творческая",solo:true,desc:"Проектируем и строим дом или город из подручных материалов. Настоящий архитектурный проект!",steps:["Обсудите: какой будет дом будущего?","Нарисуйте план на бумаге: комнаты, этажи.","Стройте из коробок, картона, скотча.","Добавьте детали: лифт из коробки, бассейн из блюдца.","Презентуйте 'архитектурный проект' семье."]},
+      {title:"Шифры и тайные послания",duration:"35–50 мин",type:"развивающая",solo:false,desc:"Придумываем шифр, пишем закодированные письма — тренируем логику и письмо.",steps:["Изучите простой шифр: А=1, Б=2 или сдвиг на 3 буквы.","Зашифруйте простое слово вместе.","Напишите друг другу тайные послания.","Расшифруйте и ответьте тоже шифром.","Придумайте свой уникальный код."]},
+      {title:"Музыкальная угадайка",duration:"20–35 мин",type:"спокойная",solo:false,desc:"Мурлыкаем, стучим, насвистываем мелодии — кто угадает больше?",steps:["Пишите на карточках названия известных мелодий.","Тяните карточку и воспроизведите мелодию любым способом.","Можно мурлыкать, стучать по столу, насвистывать.","Команда угадывает — за 30 секунд.","Меняйтесь исполнителями."]},
+      {title:"Дебаты о важном",duration:"25–40 мин",type:"развивающая",solo:false,desc:"Выбираем спорный вопрос и спорим с аргументами. Развивает логику и умение убеждать.",steps:["Выберите тему: 'кошки лучше собак?' или 'лето лучше зимы?'.","Раздайте стороны (даже если не согласны).","3 минуты на подготовку аргументов.","Спор: каждый говорит по 1–2 минуты.","Голосование: кто убедил?"]},
+      {title:"Стоп-моушен мультфильм",duration:"60–90 мин",type:"творческая",solo:false,desc:"Снимаем мультфильм на телефон: пластилиновые герои двигаются кадр за кадром!",steps:["Слепите персонажей из пластилина.","Поставьте телефон неподвижно на стакан.","Сделайте первое фото персонажа.","Чуть сдвиньте — ещё фото. 20–30 кадров.","Сложите в видео через приложение на телефоне."]}
+    ],
+    "11-13": [
+      {title:"Хакатон идей",duration:"60–90 мин",type:"развивающая",solo:true,desc:"Придумайте приложение или гаджет, решающий реальную проблему. Нарисуйте прототип!",steps:["Выберите проблему: 'забываю пить воду', 'теряю ключи'.","Придумайте 5 возможных решений — без критики.","Выберите лучшую идею и нарисуйте прототип.","Опишите: как работает, кто купит, сколько стоит.","Презентуйте идею семье как инвестору."]},
+      {title:"Кулинарное испытание",duration:"60–80 мин",type:"творческая",solo:false,desc:"Слепой вкусовой тест, создание нового рецепта, конкурс бутербродов — еда становится игрой!",steps:["Завяжите глаза и попробуйте 5 продуктов — угадайте.","Задача: придумать рецепт из 5 случайных ингредиентов.","Приготовьте блюдо.","Оцените по 5-бальной шкале: вкус, вид, оригинальность.","Запишите рецепт в 'семейную поваренную книгу'."]},
+      {title:"Дебаты на серьёзные темы",duration:"40–60 мин",type:"развивающая",solo:false,desc:"Спорим об этике, технологиях, обществе — подросток учится строить аргументы.",steps:["Выберите тему: 'соцсети вредны или полезны?'","Каждый готовит по 3 аргумента (5 минут).","Спор: 2 минуты — вступление, потом по очереди.","Парируйте аргументы оппонента.","Итог: что вы узнали нового из чужой позиции?"]},
+      {title:"Написание и запись подкаста",duration:"50–70 мин",type:"творческая",solo:false,desc:"Выбираем тему, пишем сценарий, записываем на телефон — настоящее радио-шоу дома!",steps:["Придумайте тему: обзор игры, интервью, топ-10.","Напишите сценарий: вступление, основная часть, вывод.","Порепетируйте чтение вслух.","Запишите на телефон в тихом месте.","Послушайте вместе и обсудите."]},
+      {title:"Шахматный турнир с анализом",duration:"45–70 мин",type:"настольная",solo:false,desc:"Играем в шахматы, но после каждой партии разбираем ходы — это профессиональный подход!",steps:["Расставьте шахматы и сыграйте партию.","После игры восстановите позиции из памяти.","Найдите 2–3 ключевых момента.","Обсудите: какой ход был лучше?","Сыграйте реванш с учётом разбора."]},
+      {title:"Создание настольной RPG",duration:"70–100 мин",type:"ролевая",solo:false,desc:"Придумываем мир, персонажей, сюжет — и играем как в Dungeons & Dragons, только свою версию!",steps:["Один становится 'ведущим', придумывает мир.","Остальные создают персонажей: имя, способности, цель.","Ведущий описывает ситуацию, игроки действуют.","Кубик определяет успех: 5–6 — удача.","Продолжайте историю несколько сессий."]},
+      {title:"Документальный мини-фильм",duration:"60–80 мин",type:"творческая",solo:false,desc:"Снимаем фильм о чём-то интересном: растении на подоконнике, домашнем питомце, истории вещи.",steps:["Выберите тему для документалки.","Напишите план: вступление, 3 факта, вывод.","Снимите интервью с членом семьи.","Добавьте крупные планы предмета.","Смонтируйте в простом редакторе телефона."]},
+      {title:"Инвестиционная игра",duration:"45–60 мин",type:"развивающая",solo:false,desc:"Каждый получает 1000 'монет' и 'инвестирует' — учимся думать о деньгах через игру.",steps:["Дайте каждому 1000 воображаемых монет.","Предложите 5 'акций': кофейня, магазин, IT-компания.","Каждый распределяет деньги (можно в несколько компаний).","Бросьте кубик: 1–2 — компания упала, 5–6 — выросла.","Подсчитайте итог и обсудите стратегии."]},
+      {title:"Детективная история",duration:"50–70 мин",type:"ролевая",solo:false,desc:"Один пишет детективный рассказ с уликами, остальные его читают и разгадывают.",steps:["Один пишет историю: преступление, 3 подозреваемых, улики.","Улики должны указывать на преступника, но не явно.","Остальные читают и задают вопросы: 'да/нет'.","Версия: кто виновен и почему?","Автор раскрывает истину."]},
+      {title:"Мастер-класс по навыку",duration:"45–60 мин",type:"творческая",solo:false,desc:"Каждый учит остальных чему-то, что умеет сам — фокус, узел, рецепт, танец.",steps:["Каждый думает: что я умею, чего не умеют другие?","Подготовьте мини-урок на 10 минут.","Проведите урок по шагам.","Ученики задают вопросы и практикуются.","Оцените друг друга: чему научились?"]}
+    ]
+  },
+  outdoor: {
+    "6-7": [
+      {title:"Охота за природными сокровищами",duration:"30–50 мин",type:"развивающая",solo:false,desc:"Составляем список природных находок и ищем: жёлтый лист, круглый камень, пёрышко.",steps:["Составьте список из 10–15 предметов природы.","Возьмите пакет для находок.","Ищите вместе и радуйтесь каждой находке.","Рассмотрите детали: цвет, форма, запах.","Дома разложите красиво и сфотографируйте."]},
+      {title:"Рисование на асфальте",duration:"30–45 мин",type:"творческая",solo:false,desc:"Большие мелки, большое поле — рисуем город, лабиринт, классики!",steps:["Возьмите разноцветные мелки.","Нарисуйте лабиринт и пройдите его.","Обведите друг друга и раскрасьте.","Нарисуйте классики и попрыгайте.","Сфотографируйте шедевры."]},
+      {title:"Шарики из воды",duration:"20–35 мин",type:"активная",solo:false,desc:"Водяные шарики в жаркий день — беззаботная и мокрая радость!",steps:["Наполните воздушные шарики водой.","Завяжите и сложите в ведро.","Разделитесь на команды.","Бросайте шарики друг в друга.","Кто мокрее всех — тот победил!"]},
+      {title:"Полоса препятствий",duration:"30–45 мин",type:"активная",solo:false,desc:"Ставим конусы (камни), прыгаем, ползём, балансируем — мини-спартанская гонка!",steps:["Обозначьте старт и финиш.","Расставьте препятствия: слалом из камней, прыжок через верёвку.","Засеките время первого прохода.","Каждый пробует улучшить результат.","Придумайте командное испытание."]},
+      {title:"Строим запруду или каналы",duration:"40–60 мин",type:"развивающая",solo:false,desc:"Если есть ручеёк или лужа — строим плотину из камней, пускаем кораблики.",steps:["Найдите лужу или ручеёк.","Собирайте камни, веточки, листья.","Стройте плотину — наблюдайте как вода течёт.","Сделайте кораблик из листа или коры.","Пустите в 'плавание' и отслеживайте путь."]}
+    ],
+    "8-10": [
+      {title:"Геокэшинг своими руками",duration:"50–70 мин",type:"развивающая",solo:false,desc:"Прячем 'клад' с запиской в парке, рисуем карту — и ищем как настоящие следопыты.",steps:["Спрячьте коробочку с запиской у приметного дерева или камня.","Нарисуйте карту с ориентирами.","Дайте карту ребёнку и наблюдайте.","Найденный клад содержит задание следующего тайника.","Создайте сеть из 3–4 тайников."]},
+      {title:"Фотоохота",duration:"40–60 мин",type:"творческая",solo:true,desc:"Задание: сфотографировать список объектов за прогулку. Ребёнок — фотограф!",steps:["Составьте список из 15 объектов: тень, круглое, красное, паутина.","Дайте телефон или фотоаппарат.","Идите гулять — ребёнок ищет и снимает.","По возвращении просматривайте вместе.","Выберите лучший кадр и распечатайте."]}
+    ]
+  },
+  car: {
+    "4-5": [
+      {title:"Называем то, что видим",duration:"10–20 мин",type:"развивающая",solo:false,desc:"Кто первый увидит красную машину, собаку, магазин — тот зарабатывает очко!",steps:["Объясните правило: называем предметы за окном.","Начните с простого: красная машина — 1 очко.","Добавьте сложное: грузовик, дерево с птицей.","Считайте очки на пальцах.","В конце поездки — подбейте итог."]},
+      {title:"Угадай мелодию",duration:"10–20 мин",type:"спокойная",solo:false,desc:"Мурлыкаем знакомые песни из мультиков — угадай быстрее всех!",steps:["Объясните: мурлычем мелодию без слов.","Начните с простой: 'в траве сидел кузнечик'.","Кто угадал — мурлычет следующую.","Усложняйте: тихо, ускоряя.","Пойте вместе угаданную песню."]}
+    ],
+    "6-7": [
+      {title:"Я беру в дорогу...",duration:"15–25 мин",type:"развивающая",solo:false,desc:"Классическая игра на память: каждый повторяет список и добавляет своё слово.",steps:["Объясните: 'Я беру в дорогу яблоко'.","Следующий: 'Я беру яблоко и книгу'.","Каждый добавляет слово и повторяет все предыдущие.","Кто забыл слово — выбывает.","Победитель придумывает тему следующего раунда."]},
+      {title:"20 вопросов",duration:"10–20 мин",type:"развивающая",solo:false,desc:"Загадываем предмет — отвечаем только 'да' или 'нет', найди за 20 вопросов!",steps:["Один загадывает предмет, животное или человека.","Остальные задают вопросы: 'это живое?'","Только ответы 'да' или 'нет'.","Есть 20 вопросов — не больше.","Угадал — следующий загадывает."]}
+    ],
+    "8-10": [
+      {title:"Составь историю по буквам",duration:"15–25 мин",type:"творческая",solo:false,desc:"По очереди говорим предложения, каждое начинается со следующей буквы алфавита.",steps:["Начните с буквы А: 'Антон жил в лесу'.","Следующий: 'Б — буря налетела внезапно'.","Продолжайте по алфавиту.","Старайтесь делать связную историю.","Запишите самые смешные повороты."]},
+      {title:"Дорожный квиз",duration:"20–35 мин",type:"развивающая",solo:false,desc:"Вопросы о городах, животных, числах — кто набирает 10 очков первым, тот победил!",steps:["Придумайте по 5 вопросов на любые темы.","Задавайте по очереди.","За правильный ответ — 1 очко.","Сложный вопрос стоит 2 очка.","Кто первый наберёт 10 — победитель."]}
+    ]
+  },
+  cafe: {
+    "4-5": [
+      {title:"Рисуем на салфетках",duration:"15–25 мин",type:"творческая",solo:true,desc:"Ресторанные салфетки — отличный холст! Рисуем что видим вокруг.",steps:["Попросите несколько лишних салфеток.","Достаньте карандаши или попросите ручку.","Рисуйте то, что видите в кафе.","Придумайте подписи к рисункам.","Оставьте рисунок официанту — им будет приятно!"]},
+      {title:"Истории про посетителей",duration:"15–25 мин",type:"ролевая",solo:false,desc:"Смотрим на людей вокруг и придумываем про них смешные истории — развиваем воображение!",steps:["Выберите человека за другим столиком.","'Как его зовут? Куда он спешит?'","Придумайте профессию и приключение.","Поменяйтесь ролями — вы загадайте персонажа.","Нарисуйте самый интересный образ."]}
+    ],
+    "6-7": [
+      {title:"Меню-квест",duration:"20–30 мин",type:"развивающая",solo:false,desc:"Изучаем меню: самое дорогое, самое странное блюдо, составляем идеальный обед на 500 рублей.",steps:["Возьмите меню для каждого.","Задание 1: найди самое дорогое блюдо.","Задание 2: придумай обед на заданную сумму.","Задание 3: угадай ингредиенты блюда по названию.","Задание 4: придумай своё блюдо и назови его."]},
+      {title:"Телепатия",duration:"10–20 мин",type:"спокойная",solo:false,desc:"Один загадывает предмет из видимых — другой угадывает, задавая да/нет вопросы.",steps:["Загадайте предмет, который видно в кафе.","Отгадывающий задаёт вопросы: 'это большое?'","Только 'да' или 'нет'.","Максимум 10 вопросов.","Угадал — загадывает следующий."]}
+    ]
+  }
+};
+
+// Fallback — если нет игр для конкретной комбинации
+function getFallbackGames(age, loc) {
+  const homeGames = GAMES_DB.home;
+  const ageGroups = ["2-3","4-5","6-7","8-10","11-13"];
+  for (let a of ageGroups) {
+    if (homeGames[a]) return homeGames[a];
+  }
+  return homeGames["6-7"];
+}
+
+// ─── STATE ───────────────────────────────────
+let loc = 'home';
+let favorites = JSON.parse(localStorage.getItem('game-favs') || '[]');
+
+// ─── INIT ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateFavCount();
+  renderFavorites();
+});
+
+// ─── NAVIGATION ───────────────────────────────
+function showPanel(name, triggerEl) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+
+  document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+  const sideNav = document.getElementById('nav-' + name);
+  if (sideNav) sideNav.classList.add('active');
+
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  if (triggerEl && triggerEl.classList.contains('mobile-nav-btn')) {
+    triggerEl.classList.add('active');
+  }
+
+  if (name === 'favorites') renderFavorites();
+  document.getElementById('mobile-nav').classList.remove('open');
+}
+
+function toggleMobileMenu() {
+  document.getElementById('mobile-nav').classList.toggle('open');
+}
+
+// ─── LOCATION ────────────────────────────
+document.getElementById('loc-tags').querySelectorAll('.loc-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.getElementById('loc-tags').querySelectorAll('.loc-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    loc = b.dataset.v;
+  });
+});
+
+// ─── TYPE STYLE ───────────────────────────────
+const typeClass = t => {
+  if (/твор/i.test(t)) return 'type-creative';
+  if (/актив/i.test(t)) return 'type-active';
+  if (/настол/i.test(t)) return 'type-board';
+  if (/ролев/i.test(t)) return 'type-role';
+  if (/развив/i.test(t)) return 'type-dev';
+  return 'type-calm';
+};
+
+// ─── GENERATE ─────────────────────────────────
+function generate() {
+  const age = document.getElementById('age').value;
+  const kids = parseInt(document.getElementById('kids').value);
+  const dur = parseInt(document.getElementById('dur').value);
+
+  const filters = {
+    quiet: document.getElementById('f-quiet').checked,
+    active: document.getElementById('f-active').checked,
+    nomat: document.getElementById('f-nomat').checked,
+    solo: document.getElementById('f-solo').checked,
+    creative: document.getElementById('f-creative').checked,
+    dev: document.getElementById('f-dev').checked,
+  };
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  document.getElementById('gen-icon').textContent = '⟳';
+  document.getElementById('gen-icon').classList.add('spin');
+  document.getElementById('gen-label').textContent = 'Подбираю игры...';
+
+  document.getElementById('results').innerHTML = `
+    <div class="loading-wrap">
+      <span class="loading-emoji">🎲</span>
+      <div class="loading-text">Подбираю игры...</div>
+      <div class="loading-sub">Ищу лучшее для вас!</div>
+    </div>`;
+
+  setTimeout(() => {
+    // Получаем пул игр
+    let pool = [];
+
+    const locDb = GAMES_DB[loc] || GAMES_DB.home;
+    const agePool = locDb[age] || null;
+
+    if (agePool) {
+      pool = [...agePool];
+    } else {
+      // Fallback: берём из home
+      pool = [...(GAMES_DB.home[age] || GAMES_DB.home["6-7"])];
+    }
+
+    // Применяем фильтры
+    let filtered = pool.filter(g => {
+      if (filters.quiet && /актив/i.test(g.type)) return false;
+      if (filters.active && /спокойн|тих/i.test(g.type)) return false;
+      if (filters.solo && !g.solo) return false;
+      if (filters.creative && !/твор/i.test(g.type)) return false;
+      if (filters.dev && !/развив/i.test(g.type)) return false;
+      return true;
+    });
+
+    if (filtered.length < 5) filtered = pool;
+
+    // Перемешиваем
+    filtered = filtered.sort(() => Math.random() - 0.5);
+
+    // Берём до 10
+    const games = filtered.slice(0, Math.min(10, filtered.length));
+
+    // Если меньше 10 — добираем из home
+    if (games.length < 10) {
+      const extra = (GAMES_DB.home[age] || GAMES_DB.home["6-7"])
+        .filter(g => !games.find(x => x.title === g.title))
+        .sort(() => Math.random() - 0.5);
+      games.push(...extra.slice(0, 10 - games.length));
+    }
+
+    // Рендерим
+    const totalMin = games.reduce((acc, g) => {
+      const m = g.duration.match(/(\d+)/g);
+      return acc + (m ? Math.round((+m[0] + (+m[m.length-1] || +m[0])) / 2) : 20);
+    }, 0);
+
+    const locLabels = {home:'🏠 дома', outdoor:'🌳 на улице', car:'🚗 в машине', cafe:'🛍️ в кафе'};
+    const ageLab = document.getElementById('age').options[document.getElementById('age').selectedIndex].text;
+
+    let html = `
+      <div class="res-bar">
+        <span class="res-title">Игры для ${ageLab} ${locLabels[loc]||''}</span>
+        <button class="btn-sm" onclick="generate()">⟳ Ещё варианты</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><span class="stat-n">${games.length}</span><span class="stat-l">игр</span></div>
+        <div class="stat"><span class="stat-n">~${totalMin}</span><span class="stat-l">минут</span></div>
+        <div class="stat"><span class="stat-n">${games.filter(g=>g.solo).length}</span><span class="stat-l">без родителя</span></div>
+      </div>`;
+
+    games.forEach((g, i) => {
+      const id = 'g' + Date.now() + i;
+      const steps = (g.steps||[]).map((s,si)=>
+        `<div class="step"><div class="step-n">${si+1}</div><div class="step-text">${s}</div></div>`
+      ).join('');
+      const soloBadge = g.solo ? `<span class="badge" style="background:#E0F7F4;color:#00695C">без родителя</span>` : '';
+      const isSaved = favorites.some(f=>f.title===g.title);
+
+      html += `<div class="game-card" id="card-${id}">
+        <div class="game-top">
+          <div class="gnum">${i+1}</div>
+          <div class="ginfo" onclick="toggleCard('${id}')">
+            <div class="gtitle">${g.title}</div>
+            <div class="gmeta">
+              <span class="badge" style="background:#FFF3E0;color:#E65100">⏱ ${g.duration}</span>
+              <span class="badge ${typeClass(g.type)}">${g.type}</span>
+              ${soloBadge}
+            </div>
+          </div>
+          <div class="gactions">
+            <button class="fav-btn ${isSaved?'saved':''}" id="fav-${id}" onclick="toggleFav('${id}',${JSON.stringify(g).replace(/'/g,"\\'")})" title="В избранное">❤</button>
+            <div class="chevron" id="chev-${id}" onclick="toggleCard('${id}')">▾</div>
+          </div>
+        </div>
+        <div class="game-body" id="body-${id}">
+          <div class="gdesc">${g.desc}</div>
+          <div class="steps-label">Как играть</div>
+          ${steps}
+        </div>
+      </div>`;
+    });
+
+    document.getElementById('results').innerHTML = html;
+
+    btn.disabled = false;
+    document.getElementById('gen-icon').textContent = '✨';
+    document.getElementById('gen-icon').classList.remove('spin');
+    document.getElementById('gen-label').textContent = 'Придумать 10 игр!';
+  }, 700);
+}
+
+function toggleCard(id) {
+  document.getElementById('body-'+id).classList.toggle('open');
+  document.getElementById('chev-'+id).classList.toggle('open');
+}
+
+// ─── FAVORITES ────────────────────────────────
+function toggleFav(id, game) {
+  const idx = favorites.findIndex(f=>f.title===game.title);
+  if (idx > -1) {
+    favorites.splice(idx,1);
+    const btn = document.getElementById('fav-'+id);
+    if(btn) btn.classList.remove('saved');
+  } else {
+    favorites.push(game);
+    const btn = document.getElementById('fav-'+id);
+    if(btn) btn.classList.add('saved');
+  }
+  localStorage.setItem('game-favs', JSON.stringify(favorites));
+  updateFavCount();
+}
+
+function updateFavCount() {
+  const el = document.getElementById('fav-count');
+  if (favorites.length > 0) {
+    el.textContent = favorites.length;
+    el.style.display = 'inline-block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function renderFavorites() {
+  const el = document.getElementById('fav-list');
+  const actEl = document.getElementById('fav-actions');
+  if (favorites.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <span class="empty-icon">❤️</span>
+      <div class="empty-title">Избранное пусто</div>
+      <div class="empty-sub">Нажимайте ❤ на понравившихся играх, чтобы сохранить их здесь</div>
+    </div>`;
+    if(actEl) actEl.style.display='none';
+    return;
+  }
+
+  if(actEl) actEl.style.display='block';
+
+  let html = '';
+  favorites.forEach((g,i) => {
+    const id='fav'+i;
+    const steps=(g.steps||[]).map((s,si)=>
+      `<div class="step"><div class="step-n">${si+1}</div><div class="step-text">${s}</div></div>`
+    ).join('');
+    const soloBadge = g.solo ? `<span class="badge" style="background:#E0F7F4;color:#00695C">без родителя</span>` : '';
+
+    html+=`<div class="game-card">
+      <div class="game-top">
+        <div class="gnum">${i+1}</div>
+        <div class="ginfo" onclick="toggleCard('${id}')">
+          <div class="gtitle">${g.title}</div>
+          <div class="gmeta">
+            <span class="badge" style="background:#FFF3E0;color:#E65100">⏱ ${g.duration}</span>
+            <span class="badge ${typeClass(g.type)}">${g.type}</span>
+            ${soloBadge}
+          </div>
+        </div>
+        <div class="gactions">
+          <button class="fav-btn saved" onclick="removeFav(${i})" title="Удалить">❤</button>
+          <div class="chevron" id="chev-${id}" onclick="toggleCard('${id}')">▾</div>
+        </div>
+      </div>
+      <div class="game-body" id="body-${id}">
+        <div class="gdesc">${g.desc}</div>
+        <div class="steps-label">Как играть</div>
+        ${steps}
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function removeFav(idx) {
+  favorites.splice(idx,1);
+  localStorage.setItem('game-favs', JSON.stringify(favorites));
+  updateFavCount();
+  renderFavorites();
+}
+
+function clearFavorites() {
+  if (confirm('Очистить все сохранённые игры?')) {
+    favorites = [];
+    localStorage.setItem('game-favs','[]');
+    updateFavCount();
+    renderFavorites();
+  }
+}
+</script>
+</body>
+</html>

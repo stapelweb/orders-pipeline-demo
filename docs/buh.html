@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Главбух · Сервис анализа выписки</title>
+<meta name="description" content="Разбор банковской выписки: операции разносятся по плану счетов, считаются обороты, налоги и кассовые разрывы.">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --fin: #2c7a4d;
+    --fin-dark: #1f5e3a;
+    --fin-light: #e8f3ec;
+    --ink: #1a2c20;
+    --muted: #5a6e62;
+    --card: #ffffff;
+    --border: #d9e6dd;
+    --danger: #c8302c;
+    --warn: #c89020;
+  }
+  body {
+    background: linear-gradient(160deg, #eef5ef 0%, #e0ece4 100%);
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    line-height: 1.5;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(135deg, var(--fin), var(--fin-dark));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .header p { color: var(--muted); font-size: 1.05rem; max-width: 640px; margin: 0 auto; }
+  .badge { display:inline-block; background: var(--fin-light); color: var(--fin-dark);
+    padding: 0.3rem 0.9rem; border-radius: 30px; font-size: 0.8rem; font-weight: 600; margin-top: 0.6rem; }
+
+  .input-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  @media (max-width: 800px) { .input-row { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--card); border-radius: 1.5rem; padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(31, 94, 58, 0.08); border: 1px solid var(--border);
+  }
+  .panel h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+
+  .input-area {
+    width: 100%; min-height: 240px; border: 2px dashed var(--border);
+    border-radius: 1rem; padding: 1rem;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 0.88rem;
+    resize: vertical; background: #fafcfa;
+  }
+  .input-area:focus { outline: none; border-color: var(--fin); background: white; }
+
+  .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+  .label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .chip {
+    background: var(--fin-light); color: var(--fin-dark); border: none;
+    padding: 0.4rem 0.9rem; border-radius: 30px; font-size: 0.83rem;
+    cursor: pointer; font-family: inherit; font-weight: 500;
+  }
+  .chip.active { background: var(--fin); color: white; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--fin), var(--fin-dark));
+    color: white; border: none; padding: 0.9rem 1.8rem; border-radius: 2rem;
+    font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%;
+    box-shadow: 0 4px 12px rgba(44, 122, 77, 0.3); font-family: inherit;
+    margin-top: 0.5rem;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-secondary {
+    background: white; color: var(--fin-dark); border: 1.5px solid var(--fin);
+    padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.85rem;
+    cursor: pointer; font-family: inherit; font-weight: 500;
+  }
+
+  /* RESULTS */
+  .results { display: none; }
+  .results.show { display: block; }
+
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: white; padding: 1.1rem 1.2rem; border-radius: 1rem;
+    border: 1px solid var(--border); border-top: 4px solid var(--fin);
+  }
+  .stat-card.danger { border-top-color: var(--danger); }
+  .stat-card.warn { border-top-color: var(--warn); }
+  .stat-val { font-size: 1.5rem; font-weight: 700; color: var(--fin-dark); margin-bottom: 0.2rem; }
+  .stat-card.danger .stat-val { color: var(--danger); }
+  .stat-card.warn .stat-val { color: var(--warn); }
+  .stat-lbl { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .table-wrap { overflow-x: auto; margin-top: 0.5rem; }
+  table.ledger {
+    width: 100%; border-collapse: collapse; font-size: 0.88rem;
+    background: white; border-radius: 0.8rem; overflow: hidden;
+  }
+  table.ledger th, table.ledger td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+  table.ledger th {
+    background: var(--fin-light); color: var(--fin-dark);
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px;
+    position: sticky; top: 0;
+  }
+  table.ledger td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
+  table.ledger tr.income td.num { color: var(--fin-dark); font-weight: 600; }
+  table.ledger tr.expense td.num { color: var(--danger); }
+  .acct-pill { background: #eef2ff; color: #2c3e80; padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; }
+
+  .acct-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.6rem; margin-top: 0.5rem;
+  }
+  .acct-box {
+    background: white; padding: 0.8rem 1rem; border-radius: 0.8rem;
+    border: 1px solid var(--border); font-size: 0.86rem;
+  }
+  .acct-box .a-name { font-weight: 600; margin-bottom: 0.3rem; }
+  .acct-box .a-row { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+  .risk-list { margin-top: 0.5rem; }
+  .risk { padding: 0.9rem 1.1rem; background: white; border-radius: 0.9rem;
+    border-left: 4px solid var(--fin); margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .risk.danger { border-left-color: var(--danger); background: #fcf3f3; }
+  .risk.warn { border-left-color: var(--warn); background: #fdf8ea; }
+  .risk strong { display: block; margin-bottom: 0.2rem; }
+  .risk em { color: var(--muted); font-style: normal; font-size: 0.83rem; }
+
+  .rec-list { margin-top: 0.5rem; counter-reset: rec; }
+  .rec {
+    background: white; padding: 1rem 1.1rem 1rem 3rem;
+    border-radius: 0.9rem; margin-bottom: 0.6rem;
+    border: 1px solid var(--border); font-size: 0.93rem; position: relative;
+  }
+  .rec::before {
+    counter-increment: rec; content: counter(rec);
+    position: absolute; left: 0.9rem; top: 0.9rem;
+    background: var(--fin); color: white;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem;
+  }
+  .rec em { color: var(--muted); font-style: normal; font-size: 0.83rem; display: block; margin-top: 0.3rem; }
+
+  .section-title { font-size: 1.15rem; font-weight: 700; margin: 1.8rem 0 0.8rem; display: flex; align-items: center; gap: 8px; }
+  .empty-state { padding: 2rem; text-align: center; color: var(--muted); font-style: italic; }
+  .footer { text-align: center; margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }
+  .sample-btn {
+    background: transparent; color: var(--fin-dark); border: 1px dashed var(--fin);
+    padding: 0.4rem 0.9rem; border-radius: 30px; font-size: 0.8rem;
+    cursor: pointer; font-family: inherit; margin-top: 0.5rem;
+  }
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/buh.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/buh.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>📐 AI-Главбух</h1>
+    <p>Загрузите выписку — сервис разнесёт операции по плану счетов, посчитает обороты, налоги и кассовые разрывы, выдаст рекомендации.</p>
+    <div class="badge">⚙️ Работает локально · Анализирует ваши данные тут же, в браузере</div>
+  </div>
+
+  <div class="input-row">
+    <div class="panel">
+      <h2>📥 Операции / банковская выписка</h2>
+      <textarea id="input" class="input-area" placeholder="Вставьте операции в любом формате. Примеры строк:
+
+01.03 Поступление от ООО Ромашка 540000 (выручка, в т.ч. НДС 20%)
+05.03 Аренда офиса ООО Бизнес-Центр 45000
+12.03 Зарплата сотрудникам 310000
+15.03 НДС за IV квартал 124000
+18.03 Канцелярия Комус 8500
+20.03 Поступление эквайринг 87500
+22.03 Страховые взносы 93000
+25.03 Поставщик ООО Альфа за товар 220000
+28.03 Комиссия банка 1200"></textarea>
+      <button class="sample-btn" id="sampleBtn">📋 Загрузить пример</button>
+    </div>
+
+    <div class="panel">
+      <h2>⚙️ Параметры</h2>
+      <div class="label">Система налогообложения</div>
+      <div class="controls">
+        <button class="chip active" data-grp="tax" data-v="ОСНО">ОСНО</button>
+        <button class="chip" data-grp="tax" data-v="УСН-6">УСН 6%</button>
+        <button class="chip" data-grp="tax" data-v="УСН-15">УСН 15%</button>
+      </div>
+      <div class="label">Сфера</div>
+      <div class="controls">
+        <button class="chip active" data-grp="sphere" data-v="торговля">Торговля</button>
+        <button class="chip" data-grp="sphere" data-v="услуги">Услуги</button>
+        <button class="chip" data-grp="sphere" data-v="ИТ">IT</button>
+      </div>
+      <button class="btn-primary" id="analyzeBtn">📊 Проанализировать</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+
+    <div class="section-title">📈 Сводка за период</div>
+    <div class="summary-grid" id="summary"></div>
+
+    <div class="section-title">📑 Разноска операций по счетам</div>
+    <div class="panel">
+      <div class="table-wrap">
+        <table class="ledger" id="ledger">
+          <thead>
+            <tr><th>Дата</th><th>Контрагент / описание</th><th>Дт</th><th>Кт</th><th style="text-align:right">Сумма, ₽</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title">💼 Обороты по счетам</div>
+    <div class="acct-summary" id="acctSummary"></div>
+
+    <div class="section-title">🧾 Налоговая нагрузка</div>
+    <div class="panel"><div id="taxes"></div></div>
+
+    <div class="section-title">🚨 Риски и проблемы</div>
+    <div class="risk-list" id="risks"></div>
+
+    <div class="section-title">✅ Рекомендации главбуха</div>
+    <div class="rec-list" id="recs"></div>
+  </div>
+
+  <div class="footer">
+    Сервис применяет правила РСБУ / ПБУ / ФСБУ к вашим операциям.<br>
+    Расчёты выполняются на JavaScript локально — данные никуда не отправляются.
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// =============== ПРАВИЛА КЛАССИФИКАЦИИ ===============
+// Каждое правило: regex → {дт, кт, тип, ndsApplicable}
+const RULES = [
+  // Поступления (доход)
+  { re: /(поступ|пришл|оплата от|оплачено от|зачисл|выручк|эквайринг|инкассац)/i,
+    dt: '51', kt: '62', type: 'income', name: 'Поступление выручки', nds: true },
+  { re: /(возврат от|возмещение от)/i,
+    dt: '51', kt: '76', type: 'income', name: 'Возврат / возмещение', nds: false },
+
+  // Налоги
+  { re: /\bндс\b/i, dt: '68.02', kt: '51', type: 'tax', name: 'НДС', nds: false },
+  { re: /налог на прибыль/i, dt: '68.04', kt: '51', type: 'tax', name: 'Налог на прибыль', nds: false },
+  { re: /(усн|единый налог)/i, dt: '68.12', kt: '51', type: 'tax', name: 'УСН', nds: false },
+  { re: /(ндфл|подоходн)/i, dt: '68.01', kt: '51', type: 'tax', name: 'НДФЛ', nds: false },
+  { re: /(страховы[ех] взнос|пенсионн|медицинск.* взнос|соц.* взнос|сфр|пфр|фсс)/i,
+    dt: '69', kt: '51', type: 'tax', name: 'Страховые взносы', nds: false },
+  { re: /налог на имущество/i, dt: '68.08', kt: '51', type: 'tax', name: 'Налог на имущество', nds: false },
+
+  // Зарплата
+  { re: /(зарплат|з\/п|зп\b|аванс.*сотрудн|оклад|фот|зарплатн)/i,
+    dt: '70', kt: '51', type: 'salary', name: 'Зарплата', nds: false },
+
+  // Аренда
+  { re: /(аренд|субаренд|арендн)/i, dt: '26', kt: '60', type: 'expense', name: 'Аренда', nds: true },
+
+  // Подотчёт
+  { re: /(подотчёт|подотчет|командиров)/i, dt: '71', kt: '50', type: 'expense', name: 'Подотчёт', nds: false },
+
+  // Банк
+  { re: /(комисси.*банк|обслуж.*счёт|обслуж.*счет|банк.*комисс)/i,
+    dt: '91.02', kt: '51', type: 'expense', name: 'Банковская комиссия', nds: false },
+
+  // Канцелярия / офис
+  { re: /(канцеляр|комус|бумага|картридж|офис.*расход)/i,
+    dt: '26', kt: '60', type: 'expense', name: 'Канцтовары', nds: true },
+
+  // Услуги связи / интернет
+  { re: /(интернет|связ.|телеком|мтс|билайн|мегафон|ростелеком)/i,
+    dt: '26', kt: '60', type: 'expense', name: 'Связь / интернет', nds: true },
+
+  // Коммуналка
+  { re: /(коммунал|электроэнерг|водоснаб|отоплен|газ.*оплат)/i,
+    dt: '26', kt: '60', type: 'expense', name: 'Коммунальные услуги', nds: true },
+
+  // Реклама / маркетинг
+  { re: /(реклам|маркетинг|яндекс\.директ|таргет|seo)/i,
+    dt: '44', kt: '60', type: 'expense', name: 'Реклама / маркетинг', nds: true },
+
+  // Поставщикам (товары/материалы)
+  { re: /(поставщ|за товар|материал|закупк|приобрет.*товар)/i,
+    dt: '60', kt: '51', type: 'expense', name: 'Оплата поставщику', nds: true },
+
+  // Общее "оплата за..."
+  { re: /(оплата за|оплачен|перечислен|переведен.*за)/i,
+    dt: '60', kt: '51', type: 'expense', name: 'Оплата контрагенту', nds: true },
+];
+
+// =============== ПАРСЕР СТРОКИ ===============
+function parseLine(line) {
+  // Дата (dd.mm[.yyyy])
+  const dateMatch = line.match(/(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?/);
+  if (!dateMatch) return null;
+
+  // Сумма — последовательность цифр (с пробелами/запятыми) ≥ 3 знаков либо с десятичной частью
+  // Берём самое большое число в строке как сумму операции
+  const amounts = [...line.matchAll(/(\d{1,3}(?:[  ]\d{3})+|\d{4,}(?:[.,]\d{1,2})?|\d+[.,]\d{2})/g)]
+    .map(m => parseFloat(m[1].replace(/[  ]/g, '').replace(',', '.')))
+    .filter(n => !isNaN(n) && n >= 100);
+
+  if (amounts.length === 0) return null;
+
+  // Самая большая сумма — основная операция
+  const amount = Math.max(...amounts);
+
+  // НДС внутри — если упомянуто "в т.ч. НДС" и число
+  const ndsMentioned = /в\s*т\.?\s*ч\.?\s*ндс|включая\s*ндс|с\s*ндс/i.test(line);
+
+  // Контрагент: всё после даты до суммы (грубо)
+  let desc = line.replace(dateMatch[0], '').trim();
+  // убираем все упоминания сумм
+  amounts.forEach(a => {
+    const formatted = a.toLocaleString('ru-RU');
+    desc = desc.replace(new RegExp(formatted.replace(/\./g, '\\.').replace(/\s/g, '[ \\u00A0]'), 'g'), '');
+  });
+  desc = desc.replace(/\d{4,}/g, '').replace(/[₽руб\.]/gi, '').replace(/\s+/g, ' ').trim();
+  desc = desc.replace(/^[-—:.\s,]+|[-—:.\s,]+$/g, '');
+
+  // Классификация
+  let rule = RULES.find(r => r.re.test(line));
+  if (!rule) rule = { dt: '60', kt: '51', type: 'expense', name: 'Прочее', nds: true };
+
+  const day = parseInt(dateMatch[1]);
+  const month = parseInt(dateMatch[2]);
+  const year = dateMatch[3] ? (dateMatch[3].length === 2 ? 2000 + parseInt(dateMatch[3]) : parseInt(dateMatch[3])) : 2026;
+  const dateObj = new Date(year, month - 1, day);
+
+  return {
+    raw: line,
+    date: dateObj,
+    dateStr: `${String(day).padStart(2,'0')}.${String(month).padStart(2,'0')}`,
+    desc: desc || rule.name,
+    amount: amount,
+    dt: rule.dt,
+    kt: rule.kt,
+    type: rule.type,
+    ruleName: rule.name,
+    ndsApplicable: rule.nds,
+    ndsInside: ndsMentioned,
+  };
+}
+
+// =============== ОСНОВНОЙ АНАЛИЗ ===============
+function analyze(text, params) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5);
+  const ops = lines.map(parseLine).filter(o => o !== null);
+
+  if (ops.length === 0) return null;
+
+  // Сортировка по дате
+  ops.sort((a, b) => a.date - b.date);
+
+  // Группировка по счетам
+  const accounts = {};
+  ops.forEach(op => {
+    [op.dt, op.kt].forEach(a => { if (!accounts[a]) accounts[a] = { debit: 0, credit: 0, ops: 0 }; });
+    accounts[op.dt].debit += op.amount;
+    accounts[op.kt].credit += op.amount;
+    accounts[op.dt].ops++;
+  });
+
+  // Итоги по типам
+  const income = ops.filter(o => o.type === 'income').reduce((s, o) => s + o.amount, 0);
+  const expense = ops.filter(o => o.type === 'expense').reduce((s, o) => s + o.amount, 0);
+  const salary = ops.filter(o => o.type === 'salary').reduce((s, o) => s + o.amount, 0);
+  const taxes = ops.filter(o => o.type === 'tax').reduce((s, o) => s + o.amount, 0);
+  const netCash = income - expense - salary - taxes;
+
+  // Налоги (расчёт по системе)
+  let ndsToPay = 0, profitTax = 0, usnTax = 0, insurance = 0;
+  if (params.tax === 'ОСНО') {
+    // НДС с поступлений: 20/120
+    ndsToPay = ops.filter(o => o.type === 'income' && o.ndsApplicable)
+      .reduce((s, o) => s + o.amount * 20/120, 0);
+    // Вычет: НДС с расходов где есть НДС
+    const ndsDeduct = ops.filter(o => o.type === 'expense' && o.ndsApplicable)
+      .reduce((s, o) => s + o.amount * 20/120, 0);
+    ndsToPay = Math.max(0, ndsToPay - ndsDeduct);
+    // Налог на прибыль: 20% от (Доходы без НДС - Расходы без НДС - ФОТ - страховые)
+    const incomeNoNds = income / 1.2;
+    const expenseNoNds = expense / 1.2;
+    profitTax = Math.max(0, (incomeNoNds - expenseNoNds - salary - salary * 0.302) * 0.20);
+  } else if (params.tax === 'УСН-6') {
+    usnTax = income * 0.06;
+  } else if (params.tax === 'УСН-15') {
+    usnTax = Math.max(income * 0.01, (income - expense - salary) * 0.15);
+  }
+  insurance = salary * 0.302; // 30.2% страховых на зарплату
+
+  // Кассовые разрывы — по неделям
+  const weekly = {};
+  ops.forEach(op => {
+    const wk = Math.floor((op.date.getTime() - new Date(op.date.getFullYear(), 0, 1).getTime()) / (7 * 24 * 3600 * 1000));
+    if (!weekly[wk]) weekly[wk] = { in: 0, out: 0, start: op.date };
+    if (op.type === 'income') weekly[wk].in += op.amount;
+    else weekly[wk].out += op.amount;
+  });
+  const gaps = Object.values(weekly).filter(w => w.out > w.in * 1.3 && w.out - w.in > 50000);
+
+  // Доли
+  const totalExpense = expense + salary + taxes;
+  const salaryShare = totalExpense > 0 ? salary / income * 100 : 0;
+  const taxShare = income > 0 ? (ndsToPay + profitTax + usnTax + insurance) / income * 100 : 0;
+
+  // Риски
+  const risks = [];
+  if (salaryShare > 35) risks.push({
+    level: 'warn',
+    title: `🟡 Доля ФОТ ${salaryShare.toFixed(1)}% от выручки — выше нормы`,
+    note: 'Рекомендуемый ориентир для торговли — 15–25%, для услуг — до 35%. Превышение давит на маржу. Рассмотреть оптимизацию через аутсорс или пересмотр окладов.'
+  });
+  if (gaps.length > 0) risks.push({
+    level: 'danger',
+    title: `🔴 Кассовый разрыв в ${gaps.length} нед. (расходы превысили поступления более чем в 1,3 раза)`,
+    note: 'Прогноз нехватки ликвидности. Рассмотреть факторинг по дебиторке или кредитную линию.'
+  });
+  if (netCash < 0) risks.push({
+    level: 'danger',
+    title: `🔴 Отрицательный денежный поток: ${netCash.toLocaleString('ru-RU', {maximumFractionDigits: 0})} ₽`,
+    note: 'Расходы и налоги в сумме превышают поступления. Срочно: пересмотр обязательств, отсрочка платежей контрагентам, ускорение взыскания дебиторки.'
+  });
+  if (taxShare > 25) risks.push({
+    level: 'warn',
+    title: `🟡 Налоговая нагрузка ${taxShare.toFixed(1)}% от выручки — на верхней границе`,
+    note: 'Среднеотраслевая нагрузка по ФНС в торговле — 2,8%, услугах — 8%. Высокая нагрузка может привлечь внимание камеральной проверки.'
+  });
+
+  // Прочее
+  const expenseOps = ops.filter(o => o.type === 'expense');
+  // Дубликаты — одинаковая сумма + контрагент в один период
+  const sigMap = {};
+  expenseOps.forEach(o => {
+    const sig = `${o.amount}|${o.desc.toLowerCase().substring(0, 20)}`;
+    sigMap[sig] = (sigMap[sig] || 0) + 1;
+  });
+  const dupes = Object.entries(sigMap).filter(([, c]) => c > 1);
+  if (dupes.length > 0) risks.push({
+    level: 'warn',
+    title: `🟡 Возможные задвоенные списания: ${dupes.length} группа(ы)`,
+    note: 'Найдены повторяющиеся суммы с одинаковым контрагентом. Проверить, не оплачен ли один счёт дважды.'
+  });
+
+  if (income > 0 && expense < income * 0.1) risks.push({
+    level: 'warn',
+    title: `🟡 Слишком низкие расходы (${(expense/income*100).toFixed(1)}% от выручки)`,
+    note: 'Возможно, выписка неполная или часть расходов идёт через кассу/другой счёт. Проверить полноту данных.'
+  });
+
+  // Рекомендации
+  const recs = [];
+  if (params.tax === 'ОСНО' && ndsToPay > 0) recs.push({
+    title: `Уплатить НДС ${ndsToPay.toLocaleString('ru-RU', {maximumFractionDigits: 0})} ₽ до 28 числа месяца, следующего за кварталом`,
+    note: 'Ст. 174 НК РФ. При переплате — подать заявление о зачёте (КНД 1150058) в счёт будущих платежей.'
+  });
+  if (salaryShare > 35) recs.push({
+    title: 'Пересмотреть структуру ФОТ: вывести часть функций на ГПХ или аутсорс',
+    note: 'Снижает страховые взносы (по ГПХ — 27,1% вместо 30,2%, по самозанятым — 0%). Внимание к ст. 54.1 НК РФ — переоформление штатных как ИП/самозанятых даёт риск переквалификации.'
+  });
+  if (gaps.length > 0 || netCash < 0) recs.push({
+    title: 'Запросить отсрочку у поставщиков на 10–14 дней / подключить факторинг по дебиторке',
+    note: 'Закрывает кассовый разрыв без кредита. Факторинговые ставки 0,1–0,15% в день дешевле овердрафта.'
+  });
+  if (ops.some(o => o.type === 'expense' && /(касс|подотчёт|подотчет)/i.test(o.desc)) === false && salary > 0) recs.push({
+    title: 'Создать резерв предстоящих расходов на отпуска (ФСБУ 28/2023)',
+    note: 'Обязательно для всех, кроме субъектов малого предпринимательства с упрощённой отчётностью. Резерв = средний ФОТ × 8,33%.'
+  });
+  recs.push({
+    title: 'Проверить дебиторку старше 90 дней и создать резерв по сомнительным долгам',
+    note: 'ПБУ 21/2008 + п. 70 Положения по ведению бухучёта. Резерв уменьшает налогооблагаемую базу по налогу на прибыль (ст. 266 НК РФ).'
+  });
+  if (params.tax === 'ОСНО') recs.push({
+    title: 'Сверить расчёты с контрагентами и составить акты сверки на конец периода',
+    note: 'Подтверждает сальдо по счетам 60, 62, 76. Без сверки сальдо в учёте может расходиться с фактом — риск доначисления НДС при проверке.'
+  });
+
+  return {
+    ops, accounts, income, expense, salary, taxes, netCash,
+    ndsToPay, profitTax, usnTax, insurance,
+    salaryShare, taxShare, gaps,
+    risks, recs, params,
+  };
+}
+
+// =============== РЕНДЕРИНГ ===============
+function fmt(n) {
+  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+}
+
+function render(result) {
+  if (!result) {
+    alert('Не удалось распознать операции. Проверьте, что в каждой строке есть дата (например, 01.03) и сумма.');
+    return;
+  }
+  document.getElementById('results').classList.add('show');
+
+  // Сводка
+  document.getElementById('summary').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${fmt(result.income)}</div><div class="stat-lbl">Поступления</div></div>
+    <div class="stat-card warn"><div class="stat-val">${fmt(result.expense + result.salary + result.taxes)}</div><div class="stat-lbl">Расходы всего</div></div>
+    <div class="stat-card ${result.netCash >= 0 ? '' : 'danger'}"><div class="stat-val">${fmt(result.netCash)}</div><div class="stat-lbl">Чистый поток</div></div>
+    <div class="stat-card"><div class="stat-val">${result.ops.length}</div><div class="stat-lbl">Операций</div></div>
+    <div class="stat-card warn"><div class="stat-val">${result.salaryShare.toFixed(1)}%</div><div class="stat-lbl">Доля ФОТ</div></div>
+    <div class="stat-card warn"><div class="stat-val">${result.taxShare.toFixed(1)}%</div><div class="stat-lbl">Налог. нагрузка</div></div>
+  `;
+
+  // Разноска
+  const tbody = document.querySelector('#ledger tbody');
+  tbody.innerHTML = result.ops.map(op => `
+    <tr class="${op.type === 'income' ? 'income' : 'expense'}">
+      <td>${op.dateStr}</td>
+      <td><strong>${op.desc}</strong><br><em style="color:#5a6e62; font-size:0.8rem;">${op.ruleName}</em></td>
+      <td><span class="acct-pill">${op.dt}</span></td>
+      <td><span class="acct-pill">${op.kt}</span></td>
+      <td class="num">${op.amount.toLocaleString('ru-RU')}</td>
+    </tr>
+  `).join('');
+
+  // Обороты по счетам
+  const acctNames = {
+    '26': 'Общехоз. расходы',
+    '44': 'Расходы на продажу',
+    '50': 'Касса',
+    '51': 'Расчётный счёт',
+    '60': 'Поставщики',
+    '62': 'Покупатели',
+    '68.01': 'НДФЛ',
+    '68.02': 'НДС',
+    '68.04': 'Налог на прибыль',
+    '68.08': 'Налог на имущество',
+    '68.12': 'УСН',
+    '69': 'Страховые взносы',
+    '70': 'Расчёты с персоналом',
+    '71': 'Подотчётные лица',
+    '76': 'Прочие дебиторы/кредиторы',
+    '91.02': 'Прочие расходы',
+  };
+  document.getElementById('acctSummary').innerHTML = Object.entries(result.accounts)
+    .sort((a, b) => (b[1].debit + b[1].credit) - (a[1].debit + a[1].credit))
+    .map(([a, v]) => `
+      <div class="acct-box">
+        <div class="a-name">${a} <span style="color:#5a6e62; font-weight:400; font-size:0.8rem;">— ${acctNames[a] || ''}</span></div>
+        <div class="a-row"><span>Дт оборот:</span><span>${v.debit.toLocaleString('ru-RU')} ₽</span></div>
+        <div class="a-row"><span>Кт оборот:</span><span>${v.credit.toLocaleString('ru-RU')} ₽</span></div>
+      </div>
+    `).join('');
+
+  // Налоги
+  const taxBlocks = [];
+  if (result.params.tax === 'ОСНО') {
+    taxBlocks.push(`<div class="risk"><strong>НДС к уплате: ${fmt(result.ndsToPay)}</strong><em>Срок: до 28 числа месяца, следующего за отчётным кварталом (ст. 174 НК РФ). Уплата равными долями по 1/3.</em></div>`);
+    taxBlocks.push(`<div class="risk"><strong>Налог на прибыль (расчётно): ${fmt(result.profitTax)}</strong><em>Ставка 20% (3% — федеральный, 17% — региональный). Авансы — до 28 числа каждого месяца.</em></div>`);
+  } else if (result.params.tax === 'УСН-6') {
+    taxBlocks.push(`<div class="risk"><strong>УСН 6% от доходов: ${fmt(result.usnTax)}</strong><em>Аванс — до 28 числа месяца после квартала. Уменьшается на страховые взносы (до 50% или полностью для ИП без работников).</em></div>`);
+  } else if (result.params.tax === 'УСН-15') {
+    taxBlocks.push(`<div class="risk"><strong>УСН 15% (доходы − расходы): ${fmt(result.usnTax)}</strong><em>Минимальный налог — 1% от доходов, если основной меньше. Аванс до 28 числа после квартала.</em></div>`);
+  }
+  taxBlocks.push(`<div class="risk"><strong>Страховые взносы с ФОТ: ${fmt(result.insurance)}</strong><em>Единый тариф 30% (с 2023 г.) + 0,2% от НС и ПЗ. Срок — до 28 числа каждого месяца за предыдущий.</em></div>`);
+  document.getElementById('taxes').innerHTML = taxBlocks.join('');
+
+  // Риски
+  document.getElementById('risks').innerHTML = result.risks.length === 0
+    ? '<div class="empty-state">Критичных проблем не обнаружено ✓</div>'
+    : result.risks.map(r => `<div class="risk ${r.level}"><strong>${r.title}</strong><em>${r.note}</em></div>`).join('');
+
+  // Рекомендации
+  document.getElementById('recs').innerHTML = result.recs.map(r =>
+    `<div class="rec"><strong>${r.title}</strong><em>${r.note}</em></div>`
+  ).join('');
+
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+// =============== UI EVENTS ===============
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const grp = chip.dataset.grp;
+    document.querySelectorAll(`.chip[data-grp="${grp}"]`).forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+document.getElementById('sampleBtn').addEventListener('click', () => {
+  document.getElementById('input').value =
+`01.03 Поступление от ООО Ромашка 540000 в т.ч. НДС 20%
+03.03 Поступление от ИП Иванов оплата за услуги 180000
+05.03 Аренда офиса ООО Бизнес-Центр 45000
+08.03 Поставщик ООО Альфа за товар 320000
+12.03 Зарплата сотрудникам 310000
+15.03 НДС за IV квартал 124000
+18.03 Канцелярия Комус 8500
+20.03 Поступление эквайринг 87500
+22.03 Страховые взносы 93000
+24.03 Реклама Яндекс.Директ 65000
+25.03 Поставщик ООО Альфа за товар 220000
+26.03 Связь МТС 4200
+28.03 Комиссия банка 1200
+30.03 Налог на прибыль аванс 38000`;
+});
+
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  const text = document.getElementById('input').value.trim();
+  if (!text) { alert('Сначала вставьте операции в поле слева'); return; }
+  const params = {
+    tax: document.querySelector('.chip[data-grp="tax"].active').dataset.v,
+    sphere: document.querySelector('.chip[data-grp="sphere"].active').dataset.v,
+  };
+  const result = analyze(text, params);
+  render(result);
+});
+</script>
+</body>
+</html>

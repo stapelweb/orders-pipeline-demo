@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пульт заказов — разбор работы — СТАПЕЛЬ</title>
+<meta name="description" content="Разбор: рабочий экран системы, которая собирает заказы с нескольких площадок, отсеивает лишнее и объясняет причину по каждому отсеву. На экране снимок базы на 26 августа 2026 года: 4495 записей.">
+<meta property="og:title" content="Пульт заказов — разбор работы">
+<meta property="og:description" content="Интерфейс к данным, где каждое решение системы объяснено словами: почему заказ прошёл или почему отсеян.">
+<meta property="og:type" content="article">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/stapel.css?v=2026-10-04">
+    <link rel="canonical" href="https://stapelweb.ru/case-pult.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/case-pult.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body data-page="portfolio">
+
+<div id="site-head-slot"></div>
+
+<main id="main">
+
+  <article>
+    <header class="case-head wrap">
+      <p class="eyebrow">Разбор работы · интерфейс к данным</p>
+      <h1 class="case-title">Пульт заказов</h1>
+      <p class="case-lead">
+        Экран, с которого видно всё, что происходит в системе поиска заказов: что собрано, что прошло
+        отбор, что отсеяно и по какой причине.
+      </p>
+      <p class="case-meta">
+        <span class="tag tag--live">живая ссылка</span>
+        <span class="tag tag--own">собственный проект</span>
+      </p>
+      <p style="margin-top:24px">
+        <a class="btn btn--primary" href="pult.html">Открыть пульт</a>
+      </p>
+    </header>
+
+    <div class="wrap">
+
+      <section class="step" data-reveal>
+        <p class="eyebrow step__label">Задача</p>
+        <h2 class="step__title">Поток заказов больше, чем можно прочитать</h2>
+        <div class="step__body">
+          <p>
+            Площадки отдают в среднем около 235 заказов в сутки — замер за неделю к 4 октября
+            2026 года. Прочитать их все нельзя, а платный отклик стоит денег, поэтому промах
+            обходится дороже пропуска. Нужен был экран, который
+            показывает не «вот список», а <strong>что с этим списком уже сделано и почему</strong>.
+          </p>
+          <p>
+            Главное требование появилось из опыта: система, которая молча прячет отсеянное,
+            бесполезна. Через неделю перестаёшь ей верить, потому что не знаешь, что она выбросила.
+          </p>
+        </div>
+      </section>
+
+      <section class="step" data-reveal>
+        <p class="eyebrow step__label">Что мешало</p>
+        <h2 class="step__title">Решение без объяснения нельзя проверить</h2>
+        <div class="step__body">
+          <p>
+            Первые версии показывали балл: «этот заказ — 62». Число ничего не говорит. Непонятно,
+            почему 62, что бы его подняло и стоит ли доверять порогу. Оценка без разбора — это
+            просьба поверить на слово, а вся идея была в обратном.
+          </p>
+          <p>
+            Вторая проблема тише и дороже: у половины прошедших фильтр заказов не было адреса,
+            по которому можно откликнуться. Список выглядел рабочим, а работать с ним было нельзя.
+          </p>
+        </div>
+        <div class="fact">
+          Находка августа 2026 года: 260 заказов без адреса отклика — 51 % всего прошедшего фильтр,
+          медиана бюджета 15 000 ₽. Дыра, которую не видно, пока смотришь только на итоговые числа.
+        </div>
+      </section>
+
+      <section class="step" data-reveal>
+        <p class="eyebrow step__label">Решение</p>
+        <h2 class="step__title">Панель «почему такой балл»</h2>
+        <div class="step__body">
+          <p>
+            У каждого заказа открывается разбор: какие слова совпали с профилем и с каким весом,
+            какое стоп-слово сработало, где бюджет относительно порога. Пороги написаны прямо на
+            экране: <strong>70 и выше — берём, 45 и выше — смотрим, ниже — мимо</strong>.
+          </p>
+          <p>
+            Отсеянные не исчезают. Они лежат отдельным списком с причиной у каждого — невидимых
+            решений у системы нет. На этом списке уже ловились ошибки самих правил отбора.
+          </p>
+          <p>
+            Цвет на экране всегда идёт со словом. Зелёная точка без подписи «прошёл отбор» — это
+            загадка, а не сигнал. Пустые состояния тоже говорят делом: не «ничего не найдено»,
+            а «последний сбор 12 минут назад, 0 из 41 прошли отбор» и кнопка «Собрать сейчас».
+          </p>
+        </div>
+      </section>
+
+      <section class="step" data-reveal>
+        <p class="eyebrow step__label">Результат</p>
+        <h2 class="step__title">Снимок базы на экране — настоящий</h2>
+        <div class="step__body">
+          <p>
+            На пульте не демонстрационные числа, а состояние базы на 26 августа 2026 года.
+            Разбивка по причинам отсева и по источникам открывается целиком. Система работает
+            и сейчас: на 4 октября 2026 года в базе 13 938 заказов, отбор прошли 4 235.
+          </p>
+        </div>
+        <div class="figures">
+          <div class="figure">
+            <p class="figure__v">4495</p>
+            <p class="figure__k">заказов в базе, пять источников</p>
+          </div>
+          <div class="figure">
+            <p class="figure__v">1326</p>
+            <p class="figure__k">прошли отбор</p>
+          </div>
+          <div class="figure">
+            <p class="figure__v">3169</p>
+            <p class="figure__k">отсеяны, у каждого указана причина</p>
+          </div>
+        </div>
+        <div class="fact">
+          Замер за неделю к 4 октября 2026 года: фильтр прошли 537 заказов, отправлено 50 откликов.
+          Поставка обгоняет нашу скорость вдесятеро — значит проблема не в фильтре, а в том, что мы
+          до заказов не доходим.
+        </div>
+      </section>
+
+      <section class="step" data-reveal>
+        <p class="eyebrow step__label">Чем полезно вам</p>
+        <h2 class="step__title">Тот же приём работает в любой ленте решений</h2>
+        <div class="step__body">
+          <p>
+            Модерация заявок, скоринг лидов, отбор резюме, разбор входящих обращений — везде, где
+            алгоритм что-то отбрасывает, нужен экран с причиной отброса. Иначе через месяц никто
+            не сможет сказать, правильно ли он работает.
+          </p>
+        </div>
+        <p style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap">
+          <a class="btn btn--primary" href="pult.html">Открыть пульт</a>
+          <a class="btn btn--ghost" href="index.html#contact">Обсудить похожую задачу</a>
+        </p>
+      </section>
+
+    </div>
+  </article>
+
+</main>
+
+<div id="site-foot-slot"></div>
+
+<script src="assets/data.js?v=2026-11-01"></script>
+<script src="assets/stapel.js?v=2026-10-04"></script>
+</body>
+</html>
