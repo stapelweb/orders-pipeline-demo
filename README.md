@@ -21,8 +21,8 @@ python tests/test_pipeline.py
 
 Живые работы, которые можно открыть и потрогать прямо сейчас:
 
-- **[stapelweb.github.io/orders-pipeline-demo/work.html](https://stapelweb.github.io/orders-pipeline-demo/work.html)** — двенадцать
-  работающих приложений: калькуляторы, подборщики, экраны с данными. Считают
+- **[stapelweb.github.io/orders-pipeline-demo/work.html](https://stapelweb.github.io/orders-pipeline-demo/work.html)** — двадцать работ,
+  которые открываются по ссылке прямо сейчас: калькуляторы, подборщики, экраны с данными. Считают
   в браузере, без сервера.
 - **[stapelweb.github.io/orders-pipeline-demo/pult.html](https://stapelweb.github.io/orders-pipeline-demo/pult.html)** — рабочий экран
   на настоящих данных: лента, отбор, реестр, поиск.
