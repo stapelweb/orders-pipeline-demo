@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пенсионный калькулятор</title>
+<meta name="description" content="Пенсионный калькулятор: капитал к выходу на пенсию с учётом ежеквартальной капитализации, по вашим доходам и расходам.">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          #f5f0e8;
+    --bg-warm:     #ede7da;
+    --surface:     #ffffff;
+    --surface2:    #faf7f2;
+    --border:      #e0d8cc;
+    --border-soft: #ede7da;
+    --accent:      #b5622a;
+    --accent-dim:  rgba(181, 98, 42, 0.08);
+    --accent-glow: rgba(181, 98, 42, 0.20);
+    --accent2:     #3a6b4a;
+    --text:        #1e1a15;
+    --text-body:   #3d3628;
+    --text-muted:  #7a6e5f;
+    --text-dim:    #a89e8e;
+    --success:     #2e7d48;
+    --success-bg:  rgba(46, 125, 72, 0.08);
+    --danger:      #c0392b;
+    --danger-bg:   rgba(192, 57, 43, 0.08);
+    --shadow-sm:   0 1px 4px rgba(30,26,21,0.06), 0 2px 12px rgba(30,26,21,0.04);
+    --shadow:      0 2px 16px rgba(30,26,21,0.08), 0 4px 32px rgba(30,26,21,0.05);
+    --radius:      6px;
+    --radius-lg:   12px;
+    --radius-xl:   18px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-body);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    min-height: 100vh;
+    padding: 48px 20px 100px;
+  }
+
+  /* Subtle texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(181,98,42,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 100%, rgba(58,107,74,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    max-width: 880px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header ── */
+  header {
+    margin-bottom: 56px;
+    padding-bottom: 36px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    opacity: 0.85;
+  }
+
+  h1 {
+    font-family: 'Lora', serif;
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    color: var(--text-muted);
+    font-size: 15px;
+    font-weight: 400;
+    max-width: 540px;
+    line-height: 1.6;
+  }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Panels ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    animation: fadeUp 0.4s ease both;
+  }
+
+  /* ── Fields ── */
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  input[type="number"] {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 19px;
+    font-weight: 500;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    background: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Delta display ── */
+  .delta-display {
+    background: var(--surface2);
+    border: 1.5px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .delta-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .delta-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--success);
+    transition: color 0.3s;
+  }
+
+  .delta-value.negative { color: var(--danger); }
+
+  .warning-msg {
+    display: none;
+    background: var(--danger-bg);
+    border: 1px solid rgba(192,57,43,0.25);
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    font-size: 13px;
+    color: var(--danger);
+    margin-top: 12px;
+    font-weight: 500;
+  }
+
+  .warning-msg.visible { display: block; }
+
+  /* ── Params row ── */
+  .params-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .note {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    padding: 12px 16px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-dim);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  .note strong { color: var(--accent); font-weight: 600; }
+
+  /* ── Result cards ── */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 22px 26px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .result-card:hover {
+    box-shadow: var(--shadow);
+  }
+
+  .result-card.featured {
+    border-color: var(--accent);
+    background: linear-gradient(140deg, #fff 55%, rgba(181,98,42,0.04));
+  }
+
+  .result-card.featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #e8915a);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .card-value {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.45rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+    word-break: break-all;
+  }
+
+  .result-card.featured .card-value { color: var(--accent); }
+
+  .card-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 7px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Table ── */
+  .table-wrapper {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    animation: fadeUp 0.4s 0.1s ease both;
+  }
+
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  thead th {
+    background: var(--surface2);
+    padding: 13px 18px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1.5px solid var(--border);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  thead th:first-child { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border-soft);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(181,98,42,0.035); }
+
+  tbody td {
+    padding: 12px 18px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-body);
+    white-space: nowrap;
+  }
+
+  tbody td:first-child {
+    text-align: center;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .td-gain { color: var(--success); font-weight: 500; }
+
+  .empty-state {
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+    display: none;
+  }
+
+  .empty-state.visible { display: block; }
+
+  .sep { margin: 8px 0; }
+
+  /* ── Recommendations ── */
+  .recommendations {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 32px 36px;
+    box-shadow: var(--shadow-sm);
+    animation: fadeUp 0.4s 0.15s ease both;
+  }
+
+  .rec-intro {
+    font-family: 'Lora', serif;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  .rec-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .rec-item {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .rec-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .rec-body {}
+
+  .rec-title {
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .rec-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .rec-desc strong { color: var(--accent); font-weight: 600; }
+
+  .rec-divider {
+    height: 1px;
+    background: var(--border-soft);
+    margin: 4px 0;
+  }
+
+  .disclaimer {
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: var(--bg-warm);
+    border-radius: var(--radius-lg);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.65;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .field-row, .params-row, .results-grid { grid-template-columns: 1fr; }
+    .panel { padding: 20px 18px; }
+    .recommendations { padding: 22px 18px; }
+    h1 { font-size: 2.1rem; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card:nth-child(2) { animation-delay: 0.05s; }
+  .result-card:nth-child(3) { animation-delay: 0.10s; }
+  .result-card:nth-child(4) { animation-delay: 0.15s; }
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/pension.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/pension.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="eyebrow">// Финансовый инструмент</div>
+    <h1>Пенсионный<br><em>калькулятор</em></h1>
+    <p class="subtitle">Рассчитайте потенциальный капитал на пенсии с учётом ежеквартальной капитализации процентов</p>
+  </header>
+
+  <!-- 01: Доходы/расходы -->
+  <div class="section-label">01 — Доходы и расходы</div>
+  <div class="panel">
+    <div class="field-row">
+      <div class="field">
+        <label for="income">Месячный доход</label>
+        <input type="number" id="income" value="120000" min="0" step="1000" placeholder="0">
+        <span class="input-hint">₽ / месяц</span>
+      </div>
+      <div class="field">
+        <label for="expenses">Месячные расходы</label>
+        <input type="number" id="expenses" value="75000" min="0" step="1000" placeholder="0">
+        <span class="input-hint">₽ / месяц</span>
+      </div>
+    </div>
+    <div class="delta-display">
+      <span class="delta-label">Свободные средства (дельта)</span>
+      <span class="delta-value" id="deltaDisplay">—</span>
+    </div>
+    <div class="warning-msg" id="warningMsg">
+      ⚠ Расходы превышают доходы — дельта отрицательная. Накопление невозможно.
+    </div>
+  </div>
+
+  <!-- 02: Параметры инвестирования -->
+  <div class="section-label sep">02 — Параметры инвестирования</div>
+  <div class="panel">
+    <div class="params-row">
+      <div class="field">
+        <label for="years">Срок инвестирования (лет)</label>
+        <input type="number" id="years" value="20" min="1" max="50" step="1">
+        <span class="input-hint">от 1 до 50 лет</span>
+      </div>
+      <div class="field">
+        <label for="rate">Годовая доходность (%)</label>
+        <input type="number" id="rate" value="17" min="0" max="40" step="0.5">
+        <span class="input-hint">от 0% до 40%</span>
+      </div>
+    </div>
+    <div class="note">
+      <strong>Капитализация:</strong> Начисление процентов происходит <strong>раз в квартал</strong> (каждые 3 месяца). Взносы — ежемесячно в размере дельты.
+    </div>
+  </div>
+
+  <!-- 03: Результаты -->
+  <div class="section-label sep">03 — Результат</div>
+  <div class="results-grid">
+    <div class="result-card featured">
+      <div class="card-label">Будущий капитал</div>
+      <div class="card-value" id="rCapital">—</div>
+      <div class="card-sub" id="rCapitalSub"></div>
+    </div>
+    <div class="result-card">
+      <div class="card-label">Ежемесячная пенсия</div>
+      <div class="card-value" id="rPension">—</div>
+      <div class="card-sub">по правилу 4% годовых</div>
+    </div>
+    <div class="result-card">
+      <div class="card-label">Итого взносов</div>
+      <div class="card-value" id="rContrib">—</div>
+      <div class="card-sub" id="rContribSub"></div>
+    </div>
+    <div class="result-card">
+      <div class="card-label">Инвестиционный доход</div>
+      <div class="card-value" id="rGain">—</div>
+      <div class="card-sub" id="rGainSub"></div>
+    </div>
+  </div>
+
+  <!-- 04: Маршрут накопления -->
+  <div class="section-label sep">04 — Маршрут накопления</div>
+  <div class="table-wrapper">
+    <div class="table-scroll">
+      <table id="roadmapTable">
+        <thead>
+          <tr>
+            <th>Год</th>
+            <th>Начало года</th>
+            <th>Годовые взносы</th>
+            <th>Доход за год</th>
+            <th>Конец года</th>
+          </tr>
+        </thead>
+        <tbody id="roadmapBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState">
+      Накопление невозможно — измените доходы или расходы.
+    </div>
+  </div>
+
+  <!-- 05: Рекомендации -->
+  <div class="section-label sep" style="margin-top:20px;">05 — Рекомендации</div>
+  <div class="recommendations">
+    <p class="rec-intro">На основе принципов долгосрочного финансового планирования — ключевые советы, которые помогут достичь цели.</p>
+
+    <div class="rec-list">
+
+      <div class="rec-item">
+        <div class="rec-icon">📐</div>
+        <div class="rec-body">
+          <div class="rec-title">Начните как можно раньше</div>
+          <div class="rec-desc">Сила сложного процента проявляется во времени. <strong>Каждые 5 лет задержки примерно вдвое увеличивают необходимый ежемесячный взнос</strong> для достижения той же цели. Даже небольшие суммы, вложенные сегодня, обгоняют крупные взносы в будущем.</div>
+        </div>
+      </div>
+      <div class="rec-divider"></div>
+
+      <div class="rec-item">
+        <div class="rec-icon">💰</div>
+        <div class="rec-body">
+          <div class="rec-title">Оптимизируйте дельту</div>
+          <div class="rec-desc">Дельта — это ваш главный инструмент. Увеличение свободных средств всего на <strong>10–15%</strong> (снизив расходы или нарастив доход) ощутимо меняет итоговый капитал. Регулярно пересматривайте статьи расходов и ищите возможности для дополнительного заработка.</div>
+        </div>
+      </div>
+      <div class="rec-divider"></div>
+
+      <div class="rec-item">
+        <div class="rec-icon">📊</div>
+        <div class="rec-body">
+          <div class="rec-title">Диверсифицируйте инструменты</div>
+          <div class="rec-desc">Не держите всё в одном продукте. Комбинируйте <strong>ОФЗ и корпоративные облигации</strong> (стабильность), акции индексных фондов (рост), и депозиты с капитализацией (ликвидность). Это снижает риск и сглаживает волатильность портфеля.</div>
+        </div>
+      </div>
+      <div class="rec-divider"></div>
+
+      <div class="rec-item">
+        <div class="rec-icon">🔄</div>
+        <div class="rec-body">
+          <div class="rec-title">Реинвестируйте дивиденды и купоны</div>
+          <div class="rec-desc">Получив доход — немедленно реинвестируйте его. <strong>Реинвестирование купонов</strong> по облигациям или дивидендов по акциям — это и есть механизм, который делает ежеквартальную капитализацию такой мощной на длинном горизонте.</div>
+        </div>
+      </div>
+      <div class="rec-divider"></div>
+
+      <div class="rec-item">
+        <div class="rec-icon">🛡️</div>
+        <div class="rec-body">
+          <div class="rec-title">Создайте резервный фонд</div>
+          <div class="rec-desc">До начала активного инвестирования сформируйте «подушку безопасности» — <strong>3–6 месячных расходов</strong> на ликвидном депозите. Это защитит ваш портфель от вынужденных продаж в неподходящий момент.</div>
+        </div>
+      </div>
+      <div class="rec-divider"></div>
+
+      <div class="rec-item">
+        <div class="rec-icon">📅</div>
+        <div class="rec-body">
+          <div class="rec-title">Пересматривайте план ежегодно</div>
+          <div class="rec-desc">Жизненные обстоятельства меняются. Раз в год обновляйте цифры в калькуляторе, корректируйте доходность с учётом рыночной ситуации и <strong>индексируйте взносы на инфляцию</strong>. Небольшое ежегодное увеличение взноса даёт значительный эффект на финише.</div>
+        </div>
+      </div>
+      <div class="rec-divider"></div>
+
+      <div class="rec-item">
+        <div class="rec-icon">⚖️</div>
+        <div class="rec-body">
+          <div class="rec-title">Учитывайте налоги и льготы</div>
+          <div class="rec-desc">Используйте <strong>индивидуальный инвестиционный счёт (ИИС)</strong> для получения налогового вычета до 52 000 ₽ в год. Это бесплатная прибавка к доходности, которую часто игнорируют. ИИС типа А даёт гарантированный возврат 13% от взноса.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="disclaimer">
+      ⚠ Данный калькулятор носит ознакомительный характер. Расчёты основаны на постоянной доходности и не учитывают инфляцию, налоги и рыночные риски. Прошлая доходность не гарантирует будущей. Перед принятием финансовых решений проконсультируйтесь с квалифицированным финансовым советником.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fmt = v => Math.round(v).toLocaleString('ru-RU') + ' ₽';
+  const el  = id => document.getElementById(id);
+
+  function simulate(deltaMonthly, years, annualRatePercent) {
+    const quarterlyRate = (annualRatePercent / 100) / 4;
+    let balance = 0;
+    const snapshots = [];
+
+    for (let y = 1; y <= years; y++) {
+      const startBalance  = balance;
+      const annualContrib = deltaMonthly * 12;
+
+      for (let m = 1; m <= 12; m++) {
+        balance += deltaMonthly;
+        const globalMonth = (y - 1) * 12 + m;
+        if (globalMonth % 3 === 0) {
+          balance *= (1 + quarterlyRate);
+        }
+      }
+
+      const endBalance = balance;
+      const earned     = endBalance - startBalance - annualContrib;
+      snapshots.push({ year: y, start: startBalance, contrib: annualContrib, earned, end: endBalance });
+    }
+
+    return { finalBalance: balance, snapshots };
+  }
+
+  function update() {
+    const income   = parseFloat(el('income').value)   || 0;
+    const expenses = parseFloat(el('expenses').value) || 0;
+    const years    = Math.max(1, Math.min(50, parseInt(el('years').value)  || 15));
+    const rate     = Math.max(0, Math.min(40, parseFloat(el('rate').value) || 17));
+    const delta    = income - expenses;
+
+    const dEl = el('deltaDisplay');
+    dEl.textContent = fmt(delta);
+    dEl.classList.toggle('negative', delta <= 0);
+    el('warningMsg').classList.toggle('visible', delta <= 0);
+
+    if (delta <= 0) {
+      ['rCapital','rPension','rContrib','rGain'].forEach(id => el(id).textContent = '—');
+      ['rCapitalSub','rContribSub','rGainSub'].forEach(id => el(id).textContent = '');
+      el('roadmapBody').innerHTML = '';
+      el('roadmapTable').style.display = 'none';
+      el('emptyState').classList.add('visible');
+      return;
+    }
+
+    el('roadmapTable').style.display = '';
+    el('emptyState').classList.remove('visible');
+
+    const { finalBalance, snapshots } = simulate(delta, years, rate);
+    const totalContrib = delta * years * 12;
+    const totalGain    = finalBalance - totalContrib;
+    const pension      = (finalBalance * 0.04) / 12;
+
+    el('rCapital').textContent    = fmt(finalBalance);
+    el('rCapitalSub').textContent = `за ${years} лет при ${rate}% годовых`;
+    el('rPension').textContent    = fmt(pension);
+    el('rContrib').textContent    = fmt(totalContrib);
+    el('rContribSub').textContent = `${fmt(delta)} × ${years * 12} мес.`;
+    el('rGain').textContent       = fmt(totalGain);
+    el('rGainSub').textContent    = `+${((totalGain / totalContrib) * 100).toFixed(0)}% к взносам`;
+
+    const tbody = el('roadmapBody');
+    tbody.innerHTML = snapshots.map(s => `
+      <tr>
+        <td>${s.year}</td>
+        <td>${fmt(s.start)}</td>
+        <td>${fmt(s.contrib)}</td>
+        <td class="td-gain">+${fmt(s.earned)}</td>
+        <td>${fmt(s.end)}</td>
+      </tr>
+    `).join('');
+  }
+
+  ['income','expenses','years','rate'].forEach(id => {
+    el(id).addEventListener('input', update);
+  });
+
+  update();
+</script>
+</body>
+</html>

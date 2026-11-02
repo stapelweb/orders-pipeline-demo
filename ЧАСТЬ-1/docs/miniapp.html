@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Демо Telegram Mini App — СТАПЕЛЬ</title>
+<meta name="description" content="Живой Telegram Mini App: тема из Telegram, MainButton, экран со списком, форма и отправка данных в бот. Один HTML-файл, без фреймворков.">
+<!-- Единственный внешний скрипт — обязательный мост Telegram.
+     Всё остальное лежит в этом файле: правило самодостаточности. -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* Запасная палитра для открытия вне Telegram: уважает тему системы.
+     Внутри Telegram верх берут переменные --tg-theme-*, их ставит сам клиент. */
+  :root{
+    --fb-bg:#ffffff; --fb-fg:#1a1d21; --fb-hint:#6e7a87; --fb-link:#2481cc;
+    --fb-btn:#2481cc; --fb-btnfg:#ffffff; --fb-card:#f2f4f7; --fb-sep:rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --fb-bg:#17212b; --fb-fg:#f5f5f5; --fb-hint:#708499; --fb-link:#6ab3f3;
+      --fb-btn:#5288c1; --fb-btnfg:#ffffff; --fb-card:#232e3c; --fb-sep:rgba(255,255,255,.1);
+    }
+  }
+  :root{
+    --bg:   var(--tg-theme-bg-color, var(--fb-bg));
+    --fg:   var(--tg-theme-text-color, var(--fb-fg));
+    --hint: var(--tg-theme-hint-color, var(--fb-hint));
+    --link: var(--tg-theme-link-color, var(--fb-link));
+    --btn:  var(--tg-theme-button-color, var(--fb-btn));
+    --btnfg:var(--tg-theme-button-text-color, var(--fb-btnfg));
+    --card: var(--tg-theme-secondary-bg-color, var(--fb-card));
+    --sep:  var(--fb-sep);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--fg)}
+  body{
+    font:16px/1.5 -apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:16px 16px 96px;
+    max-width:520px;margin:0 auto;
+  }
+  h1{font-size:20px;letter-spacing:-.2px;margin-bottom:2px}
+  .sub{color:var(--hint);font-size:14px;margin-bottom:14px}
+  .label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+         color:var(--hint);margin:22px 0 8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:var(--card);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--fg)}
+  .chip b{font-weight:600}
+  .note{background:var(--card);border-left:3px solid var(--btn);border-radius:10px;
+        padding:10px 12px;font-size:14px;color:var(--fg);margin-bottom:14px}
+  .note.warn{border-left-color:#d7772e}
+
+  .card{background:var(--card);border-radius:14px;padding:13px 14px;margin-bottom:9px;
+        display:flex;align-items:center;gap:12px;cursor:pointer;
+        border:1.5px solid transparent;transition:border-color .12s}
+  .card.on{border-color:var(--btn)}
+  .box{flex:0 0 22px;height:22px;border-radius:7px;border:2px solid var(--hint);
+       display:flex;align-items:center;justify-content:center;transition:all .12s}
+  .card.on .box{background:var(--btn);border-color:var(--btn)}
+  .box svg{width:13px;height:13px;opacity:0;transition:opacity .12s}
+  .card.on .box svg{opacity:1}
+  .card .t{flex:1;min-width:0}
+  .card .t b{display:block;font-size:15px;font-weight:600}
+  .card .t span{display:block;font-size:13px;color:var(--hint)}
+  .card .p{font-size:14px;font-weight:600;white-space:nowrap}
+  .sum{display:flex;justify-content:space-between;align-items:baseline;
+       padding:6px 4px 0;font-size:14px;color:var(--hint)}
+  .sum b{font-size:17px;color:var(--fg)}
+
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:13px;color:var(--hint);margin-bottom:5px}
+  .field input,.field textarea{
+    width:100%;background:var(--card);color:var(--fg);border:1.5px solid transparent;
+    border-radius:12px;padding:11px 13px;font:inherit;font-size:15px;outline:none}
+  .field input:focus,.field textarea:focus{border-color:var(--btn)}
+  .field textarea{min-height:84px;resize:vertical}
+
+  .swatches{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .sw{display:flex;align-items:center;gap:9px;background:var(--card);
+      border-radius:10px;padding:8px 10px;font-size:12px}
+  .sw i{flex:0 0 26px;height:26px;border-radius:8px;border:1px solid var(--sep)}
+  .sw span{color:var(--hint);word-break:break-all}
+
+  details{background:var(--card);border-radius:12px;padding:11px 13px;font-size:13px}
+  details summary{cursor:pointer;font-weight:600;font-size:14px}
+  details pre{white-space:pre-wrap;word-break:break-all;margin-top:9px;
+              font:12px/1.5 ui-monospace,Consolas,monospace;color:var(--hint)}
+
+  .screen{display:none}
+  .screen.on{display:block}
+
+  /* Кнопка-дублёр для просмотра вне Telegram: внутри клиента её нет,
+     там работает настоящая MainButton. */
+  #fallbackBar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px
+       calc(10px + env(safe-area-inset-bottom));background:var(--bg);
+       border-top:1px solid var(--sep);display:none}
+  #fallbackBar.on{display:block}
+  #fallbackBtn{width:100%;max-width:488px;margin:0 auto;display:block;
+       background:var(--btn);color:var(--btnfg);border:0;border-radius:12px;
+       padding:14px;font:600 16px/1 inherit;cursor:pointer}
+  #fallbackBtn:disabled{opacity:.45;cursor:default}
+
+  #result pre{background:var(--card);border-radius:12px;padding:12px;
+      font:12.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;
+      word-break:break-all;margin:10px 0 14px}
+  a{color:var(--link)}
+  .back{display:inline-block;margin-top:4px;font-size:14px;cursor:pointer}
+  footer{margin-top:26px;font-size:12px;color:var(--hint)}
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/miniapp.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/miniapp.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+
+<h1>Запись на услуги студии</h1>
+<div class="sub">Демо Telegram Mini App · один HTML-файл, без фреймворков</div>
+
+<div id="outsideNote" class="note warn" hidden>
+  Страница открыта в обычном браузере — это режим просмотра. Внутри Telegram
+  она подхватывает тему клиента, показывает настоящую кнопку MainButton и
+  отправляет заявку прямо в бот.
+</div>
+
+<div class="label">Кто открыл приложение</div>
+<div class="chips" id="whoChips"></div>
+
+<!-- ЭКРАН 1: список -->
+<section class="screen on" id="screen-list">
+  <div class="label">Выберите услуги <span style="text-transform:none;font-weight:400">· цены в демо условные</span></div>
+  <div id="services"></div>
+  <div class="sum"><span id="sumCount">Ничего не выбрано</span><b id="sumPrice"></b></div>
+</section>
+
+<!-- ЭКРАН 2: форма -->
+<section class="screen" id="screen-form">
+  <div class="label">Контакт для связи</div>
+  <div class="field"><label for="fName">Имя</label>
+    <input id="fName" autocomplete="name" placeholder="Как к вам обращаться"></div>
+  <div class="field"><label for="fContact">Telegram или телефон</label>
+    <input id="fContact" placeholder="@username"></div>
+  <div class="field"><label for="fNote">Комментарий к заявке</label>
+    <textarea id="fNote" placeholder="Пара слов о задаче"></textarea></div>
+  <span class="back" id="backLink">&larr; Назад к списку</span>
+</section>
+
+<!-- ЭКРАН 3: итог (вне Telegram или при запуске с inline-кнопки) -->
+<section class="screen" id="screen-result">
+  <div class="label">Что ушло бы в бот</div>
+  <div class="note" id="resultNote"></div>
+  <div id="result"><pre id="resultJson"></pre></div>
+  <span class="back" id="resultBack">&larr; Вернуться</span>
+</section>
+
+<div class="label">Тема пришла из Telegram</div>
+<div class="note" id="themeNote">Палитра ниже — живые <code>themeParams</code>:
+переключите тему в Telegram, и приложение перекрасится без перезагрузки.</div>
+<div class="swatches" id="swatches"></div>
+
+<div class="label">Технические данные запуска</div>
+<details>
+  <summary>initData и окружение</summary>
+  <pre id="techInfo"></pre>
+</details>
+<div class="note" style="margin-top:9px">
+  Данные запуска подписаны Telegram — бот сверяет подпись, прежде чем
+  доверять содержимому. Заявка уходит служебным сообщением в бот, без
+  промежуточных сервисов.
+</div>
+
+<footer>Демо-страница студии СТАПЕЛЬ. Экран со списком, форма, MainButton,
+BackButton, тема и отправка данных в бот — всё в одном файле.</footer>
+
+<div id="fallbackBar"><button id="fallbackBtn"></button></div>
+
+<script>
+(function(){
+  "use strict";
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var внутри = !!(tg && tg.initData);
+
+  if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+
+  /* ---------- данные демо ---------- */
+  var УСЛУГИ = [
+    {id:"landing", name:"Лендинг под ключ",            desc:"один экран, адаптив, форма", price:20000},
+    {id:"fix",     name:"Правка существующего сайта",  desc:"диагноз, бэкап, правка",     price:4000},
+    {id:"dash",    name:"Дашборд к вашим данным",      desc:"экран, по которому решают",  price:30000},
+    {id:"miniapp", name:"Telegram mini app",           desc:"как это приложение",         price:25000},
+    {id:"email",   name:"Вёрстка email-письма",        desc:"не разъедется в Outlook",    price:6000}
+  ];
+  var выбрано = {};
+  var экран = "list";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var рубли = function(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g," ") + " ₽"; };
+  var скл = function(n){
+    var d = n % 10, h = n % 100;
+    if (h >= 11 && h <= 14) return "услуг";
+    if (d === 1) return "услуга";
+    if (d >= 2 && d <= 4) return "услуги";
+    return "услуг";
+  };
+
+  /* ---------- кто открыл ---------- */
+  var user = (внутри && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
+  (function(){
+    var chips = [];
+    if (user) {
+      var имя = [user.first_name, user.last_name].filter(Boolean).join(" ");
+      chips.push("<b>" + esc(имя || "без имени") + "</b>" +
+                 (user.username ? " · @" + esc(user.username) : ""));
+      chips.push("id <b>" + esc(String(user.id)) + "</b>");
+      if (user.language_code) chips.push("язык <b>" + esc(user.language_code) + "</b>");
+      if (user.is_premium) chips.push("Premium");
+    } else {
+      chips.push(внутри ? "Telegram не передал пользователя" : "вне Telegram");
+    }
+    if (tg) {
+      chips.push("платформа <b>" + esc(tg.platform || "?") + "</b>");
+      chips.push("тема <b>" + esc(tg.colorScheme || "?") + "</b>");
+      chips.push("Bot API <b>" + esc(tg.version || "?") + "</b>");
+    }
+    $("whoChips").innerHTML = chips.map(function(c){ return '<div class="chip">'+c+"</div>"; }).join("");
+  })();
+  if (!внутри) $("outsideNote").hidden = false;
+
+  /* ---------- экран 1: список ---------- */
+  var галка = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  $("services").innerHTML = УСЛУГИ.map(function(s){
+    return '<div class="card" data-id="'+s.id+'">' +
+      '<div class="box">'+галка+'</div>' +
+      '<div class="t"><b>'+esc(s.name)+'</b><span>'+esc(s.desc)+'</span></div>' +
+      '<div class="p">'+рубли(s.price)+'</div></div>';
+  }).join("");
+
+  $("services").addEventListener("click", function(ev){
+    var card = ev.target.closest(".card");
+    if (!card) return;
+    var id = card.getAttribute("data-id");
+    выбрано[id] = !выбрано[id];
+    card.classList.toggle("on", выбрано[id]);
+    try { if (внутри && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); } catch(e){}
+    пересчитать();
+  });
+
+  function корзина(){ return УСЛУГИ.filter(function(s){ return выбрано[s.id]; }); }
+
+  function пересчитать(){
+    var к = корзина();
+    var сумма = к.reduce(function(a,s){ return a + s.price; }, 0);
+    $("sumCount").textContent = к.length ? "Выбрано: " + к.length + " " + скл(к.length) : "Ничего не выбрано";
+    $("sumPrice").textContent = к.length ? рубли(сумма) : "";
+    обновитьКнопку();
+  }
+
+  /* ---------- экраны и кнопки ---------- */
+  function показать(имя){
+    экран = имя;
+    ["list","form","result"].forEach(function(n){
+      $("screen-"+n).classList.toggle("on", n === имя);
+    });
+    try {
+      if (внутри && tg.BackButton) {
+        if (имя === "form") { tg.BackButton.show(); } else { tg.BackButton.hide(); }
+      }
+    } catch(e){}
+    обновитьКнопку();
+    window.scrollTo(0,0);
+  }
+
+  function обновитьКнопку(){
+    var текст = "", активна = true, видима = true;
+    if (экран === "list") {
+      var к = корзина();
+      if (к.length) {
+        текст = "Дальше · " + к.length + " " + скл(к.length);
+      } else {
+        текст = "Выберите хотя бы одну услугу"; активна = false;
+      }
+    } else if (экран === "form") {
+      текст = "Отправить в бот";
+      активна = $("fName").value.trim().length > 0;
+    } else {
+      видима = false;
+    }
+
+    if (внутри) {
+      try {
+        if (!видима) { tg.MainButton.hide(); return; }
+        tg.MainButton.setText(текст);
+        if (активна) tg.MainButton.enable(); else tg.MainButton.disable();
+        tg.MainButton.show();
+      } catch(e){}
+    } else {
+      $("fallbackBar").classList.toggle("on", видима);
+      $("fallbackBtn").textContent = текст;
+      $("fallbackBtn").disabled = !активна;
+    }
+  }
+
+  function главнаяКнопка(){
+    if (экран === "list") {
+      if (!корзина().length) return;
+      if (user && !$("fName").value) {
+        $("fName").value = [user.first_name, user.last_name].filter(Boolean).join(" ");
+      }
+      if (user && user.username && !$("fContact").value) {
+        $("fContact").value = "@" + user.username;
+      }
+      показать("form");
+    } else if (экран === "form") {
+      отправить();
+    }
+  }
+
+  if (внутри) {
+    try { tg.MainButton.onClick(главнаяКнопка); } catch(e){}
+    try { tg.BackButton.onClick(function(){ показать("list"); }); } catch(e){}
+  }
+  $("fallbackBtn").addEventListener("click", главнаяКнопка);
+  $("backLink").addEventListener("click", function(){ показать("list"); });
+  $("resultBack").addEventListener("click", function(){ показать("form"); });
+  $("fName").addEventListener("input", обновитьКнопку);
+
+  /* ---------- отправка ---------- */
+  function отправить(){
+    var к = корзина();
+    var payload = {
+      тип: "заявка",
+      услуги: к.map(function(s){ return s.name; }),
+      сумма: к.reduce(function(a,s){ return a + s.price; }, 0),
+      имя: $("fName").value.trim(),
+      контакт: $("fContact").value.trim(),
+      комментарий: $("fNote").value.trim(),
+      отправлено: new Date().toISOString()
+    };
+    var data = JSON.stringify(payload);
+
+    if (!внутри) {
+      итог(data, "Вне Telegram отправка в бот недоступна — это режим просмотра. " +
+                 "Внутри Telegram эти данные пришли бы боту служебным сообщением:");
+      return;
+    }
+    // sendData работает только для приложений, запущенных с клавиатурной
+    // кнопки. Признак запуска с inline-кнопки — query_id в данных запуска.
+    if (tg.initDataUnsafe && tg.initDataUnsafe.query_id) {
+      итог(data, "Приложение запущено с inline-кнопки: так устроен Telegram, " +
+                 "sendData с неё не приходит. Откройте демо с кнопки у поля " +
+                 "ввода — заявка уйдёт в бот и он ответит в чате.");
+      return;
+    }
+    try {
+      tg.sendData(data);   // Telegram закроет приложение и отдаст боту web_app_data
+    } catch(e) {
+      итог(data, "sendData не прошёл: " + e);
+    }
+  }
+
+  function итог(data, пояснение){
+    $("resultNote").textContent = пояснение;
+    try { $("resultJson").textContent = JSON.stringify(JSON.parse(data), null, 2); }
+    catch(e) { $("resultJson").textContent = data; }
+    показать("result");
+  }
+
+  /* ---------- тема ---------- */
+  var ИМЕНА_ЦВЕТОВ = ["bg_color","text_color","hint_color","link_color",
+                      "button_color","button_text_color","secondary_bg_color",
+                      "header_bg_color","accent_text_color"];
+  function нарисоватьТему(){
+    var tp = (tg && tg.themeParams) || {};
+    var есть = ИМЕНА_ЦВЕТОВ.filter(function(k){ return tp[k]; });
+    if (!есть.length) {
+      $("swatches").innerHTML = '<div class="sw"><i style="background:var(--btn)"></i>' +
+        "<span>вне Telegram темы нет — работает запасная палитра по теме системы</span></div>";
+      return;
+    }
+    $("swatches").innerHTML = есть.map(function(k){
+      return '<div class="sw"><i style="background:'+esc(tp[k])+'"></i>' +
+             "<span>"+esc(k)+"<br>"+esc(tp[k])+"</span></div>";
+    }).join("");
+  }
+  нарисоватьТему();
+  if (tg) {
+    try {
+      tg.onEvent("themeChanged", function(){
+        нарисоватьТему();
+        var chips = $("whoChips").querySelectorAll(".chip");
+        for (var i = 0; i < chips.length; i++) {
+          if (chips[i].textContent.indexOf("тема") === 0) {
+            chips[i].innerHTML = "тема <b>" + esc(tg.colorScheme || "?") + "</b>";
+          }
+        }
+      });
+    } catch(e){}
+  }
+
+  /* ---------- техблок ---------- */
+  (function(){
+    var строки = [];
+    строки.push("внутри Telegram: " + (внутри ? "да" : "нет"));
+    if (tg) {
+      строки.push("platform: " + (tg.platform || "?"));
+      строки.push("version:  " + (tg.version || "?"));
+      строки.push("colorScheme: " + (tg.colorScheme || "?"));
+      строки.push("query_id: " + ((внутри && tg.initDataUnsafe && tg.initDataUnsafe.query_id) ?
+        "есть (запуск с inline-кнопки)" : "нет (клавиатурная кнопка или вне Telegram)"));
+    }
+    if (user) строки.push("user: " + JSON.stringify(user));
+    строки.push("");
+    строки.push("initData (" + (внутри ? tg.initData.length + " байт" : "пусто") + "):");
+    строки.push(внутри ? tg.initData : "— страница открыта вне Telegram —");
+    $("techInfo").textContent = строки.join("\n");
+  })();
+
+  пересчитать();
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пульт заказов — ФРИЛАНСЕР-мигом</title>
+  <meta name="description" content="Рабочий экран сборщика заказов на живых данных: лента с баллом, отсев с причинами, реестр откликов и поиск. Видно, за что браться сейчас.">
+<style>
+:root{
+  --ink-950:oklch(0.165 0.012 250); --ink-900:oklch(0.205 0.013 250);
+  --ink-860:oklch(0.235 0.013 250); --ink-820:oklch(0.268 0.014 250);
+  --ink-760:oklch(0.318 0.014 250); --ink-700:oklch(0.375 0.014 250);
+  --ink-600:oklch(0.46 0.013 250);  --ink-500:oklch(0.565 0.012 250);
+  --ink-400:oklch(0.66 0.011 250);  --ink-200:oklch(0.85 0.007 250);
+  --ink-050:oklch(0.975 0.004 250);
+  --lime-500:oklch(0.78 0.17 130); --lime-900:oklch(0.30 0.07 130);
+  --cyan-500:oklch(0.78 0.14 210); --cyan-900:oklch(0.30 0.06 210);
+  --amber-500:oklch(0.80 0.16 85); --amber-900:oklch(0.31 0.07 85);
+  --red-500:oklch(0.68 0.19 22);   --red-900:oklch(0.30 0.09 22);
+  --violet-500:oklch(0.72 0.14 300); --violet-900:oklch(0.30 0.07 300);
+
+  --bg-page:var(--ink-950); --surface-1:var(--ink-900); --surface-2:var(--ink-860);
+  --surface-3:var(--ink-820); --surface-inset:oklch(0.14 0.012 250);
+  --surface-selected:oklch(0.26 0.03 210);
+  --text-strong:var(--ink-050); --text-body:var(--ink-200);
+  --text-muted:var(--ink-400); --text-faint:var(--ink-500);
+  --border-hairline:oklch(0.30 0.014 250); --border-default:var(--ink-760);
+  --signal-good:var(--lime-500); --signal-watch:var(--amber-500);
+  --signal-stop:var(--red-500); --signal-work:var(--violet-500);
+  --signal-info:var(--cyan-500); --signal-idle:var(--ink-500);
+
+  --radius-sm:4px; --radius-md:6px; --radius-lg:9px; --radius-pill:999px;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,"SF Mono",Consolas,monospace;
+  --dur:140ms; --ease:cubic-bezier(0.2,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg-page); color:var(--text-body);
+  font:14px/1.5 var(--font-ui); -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+
+/* ── шапка ─────────────────────────────────────────── */
+.top{
+  display:flex; align-items:center; gap:20px; padding:12px 20px;
+  background:var(--surface-1); border-bottom:1px solid var(--border-hairline);
+  position:sticky; top:0; z-index:10; flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;margin:0;
+  letter-spacing:-.01em;color:var(--text-strong)}
+.brand .dot{width:8px;height:8px;border-radius:var(--radius-pill);
+  background:var(--signal-good);box-shadow:0 0 10px var(--signal-good)}
+.brand em{font-style:normal;color:var(--signal-good)}
+.top .grow{flex:1}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 11px;
+  background:var(--surface-3); border:1px solid var(--border-hairline);
+  border-radius:var(--radius-pill); font-size:11.5px; color:var(--text-muted);
+}
+.pill .dot{width:6px;height:6px;border-radius:var(--radius-pill);background:var(--signal-good)}
+
+/* ── раскладка ─────────────────────────────────────── */
+.app{display:grid;grid-template-columns:214px minmax(0,1fr) 340px;
+  gap:1px;background:var(--border-hairline);min-height:calc(100vh - 53px)}
+.col{background:var(--bg-page);padding:16px;min-width:0}
+.label{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:9px}
+
+/* ── навигация ─────────────────────────────────────── */
+.nav{display:flex;flex-direction:column;gap:2px;margin-bottom:22px}
+.nav button{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 10px;border-radius:var(--radius-md);color:var(--text-muted);
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+  text-align:left;
+}
+.nav button:hover{background:var(--surface-2);color:var(--text-body)}
+.nav button[aria-selected="true"]{background:var(--surface-3);color:var(--text-strong);
+  box-shadow:inset 2px 0 0 var(--signal-good)}
+.nav .n{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint)}
+.nav button[aria-selected="true"] .n{color:var(--signal-good)}
+
+.agents{display:flex;flex-direction:column;gap:7px;margin-bottom:22px}
+.agent{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-muted)}
+.agent i{width:6px;height:6px;border-radius:var(--radius-pill);flex:none}
+
+.srcs{display:flex;flex-direction:column;gap:5px}
+.src{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--text-muted)}
+.src b{font-family:var(--font-mono);font-weight:400;color:var(--text-faint)}
+
+/* ── центр ─────────────────────────────────────────── */
+.bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search{flex:1;min-width:160px;position:relative}
+.search input{
+  width:100%;padding:8px 11px 8px 30px;background:var(--surface-inset);
+  border:1px solid var(--border-hairline);border-radius:var(--radius-md);
+  color:var(--text-body);font:13px var(--font-ui);outline:none;
+}
+.search input:focus{border-color:var(--cyan-500)}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:13px;height:13px;stroke:var(--text-faint);fill:none;stroke-width:2}
+.seg{display:flex;background:var(--surface-inset);border:1px solid var(--border-hairline);
+  border-radius:var(--radius-md);overflow:hidden}
+.seg button{padding:7px 12px;font-size:12px;color:var(--text-muted)}
+.seg button[aria-selected="true"]{background:var(--surface-3);color:var(--text-strong)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--border-hairline);border:1px solid var(--border-hairline);
+  border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+.stat{background:var(--surface-1);padding:11px 13px}
+.stat .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)}
+.stat .v{font-family:var(--font-mono);font-size:22px;color:var(--text-strong);margin-top:3px}
+.stat.good .v{color:var(--signal-good)}
+.stat.stop .v{color:var(--signal-stop)}
+
+.rows{border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden}
+.row{
+  display:grid;grid-template-columns:44px minmax(0,1fr) 96px 92px;
+  gap:10px;align-items:center;padding:10px 13px;
+  background:var(--surface-1);border-bottom:1px solid var(--border-hairline);
+  cursor:pointer;transition:background var(--dur) var(--ease);
+  border-left:2px solid transparent;
+}
+.row:last-child{border-bottom:none}
+.row:hover{background:var(--surface-2)}
+.row[aria-selected="true"]{background:var(--surface-selected);border-left-color:var(--signal-info)}
+.row .score{font-family:var(--font-mono);font-size:14px;text-align:right}
+.row .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--text-strong);font-size:13px}
+.row .sub{font-size:11px;color:var(--text-faint);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .bud{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);text-align:right}
+.badge{
+  display:inline-block;padding:3px 8px;border-radius:var(--radius-sm);
+  font-size:11px;line-height:1.3;white-space:nowrap;text-align:center;
+}
+.b-good{background:var(--lime-900);color:var(--lime-500)}
+.b-watch{background:var(--amber-900);color:var(--amber-500)}
+.b-stop{background:var(--red-900);color:var(--red-500)}
+.b-work{background:var(--violet-900);color:var(--violet-500)}
+.b-info{background:var(--cyan-900);color:var(--cyan-500)}
+.b-idle{background:var(--surface-3);color:var(--text-faint)}
+
+.empty{padding:44px 20px;text-align:center;color:var(--text-faint);
+  background:var(--surface-1);border:1px solid var(--border-hairline);
+  border-radius:var(--radius-lg)}
+.empty svg{width:26px;height:26px;stroke:var(--text-faint);fill:none;stroke-width:1.5;
+  margin-bottom:9px}
+
+/* ── правая панель ─────────────────────────────────── */
+.card{background:var(--surface-1);border:1px solid var(--border-hairline);
+  border-radius:var(--radius-lg);padding:15px;margin-bottom:12px}
+.gauge{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.gauge .num{font-family:var(--font-mono);font-size:38px;line-height:1;color:var(--signal-good)}
+.gauge .max{font-family:var(--font-mono);font-size:13px;color:var(--text-faint)}
+.meter{height:4px;background:var(--surface-inset);border-radius:var(--radius-pill);
+  overflow:hidden;margin:9px 0 6px}
+.meter i{display:block;height:100%;background:var(--signal-good);border-radius:inherit;
+  transition:width var(--dur) var(--ease)}
+.verdict{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--signal-good)}
+.h{font-size:16px;line-height:1.35;color:var(--text-strong);margin:12px 0 10px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:11px 14px}
+.kv .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)}
+.kv .v{font-size:13px;color:var(--text-body);margin-top:2px}
+.kv .v.mono{font-family:var(--font-mono)}
+.why{list-style:none;display:flex;flex-direction:column;gap:7px}
+.why li{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;
+  color:var(--text-muted);padding-bottom:7px;border-bottom:1px solid var(--border-hairline)}
+.why li:last-child{border-bottom:none;padding-bottom:0}
+.why b{font-family:var(--font-mono);font-weight:400;color:var(--signal-good);white-space:nowrap}
+.why b.neg{color:var(--signal-stop)}
+.act{display:flex;gap:8px;margin-top:12px}
+.btn{padding:9px 14px;border-radius:var(--radius-md);font-size:13px;
+  background:var(--signal-good);color:var(--ink-950);font-weight:600;
+  transition:opacity var(--dur) var(--ease)}
+.btn:hover{opacity:.88}
+.btn.ghost{background:var(--surface-3);color:var(--text-body);font-weight:400;
+  border:1px solid var(--border-hairline)}
+.note{font-size:12px;color:var(--text-faint);margin-top:10px;line-height:1.45}
+.hint{padding:9px 11px;border-radius:var(--radius-md);font-size:12px;
+  display:flex;gap:8px;align-items:flex-start;margin-top:10px}
+.hint.stop{background:var(--red-900);color:var(--red-500)}
+.hint.watch{background:var(--amber-900);color:var(--amber-500)}
+.hint b{display:block;color:inherit;margin-bottom:2px}
+.hint span{color:var(--text-body);opacity:.85}
+
+footer{padding:14px 20px;border-top:1px solid var(--border-hairline);
+  font-size:11.5px;color:var(--text-faint);display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--cyan-500)}
+
+@media (max-width:1080px){
+  .app{grid-template-columns:1fr}
+  .col.side{order:2} .col.main{order:1} .col.right{order:3}
+  .row{grid-template-columns:40px minmax(0,1fr) 84px}
+  .row .bud{display:none}
+}
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/pult.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/pult.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+
+<div class="top">
+  <h1 class="brand"><span class="dot"></span>ФРИЛАНСЕР-<em>мигом</em></h1>
+  <span class="pill"><span class="dot"></span>Автосбор каждые 15 мин</span>
+  <span class="pill mono" id="снято"></span>
+  <div class="grow"></div>
+  <span class="pill">Снимок рабочей базы</span>
+</div>
+
+<div class="app">
+
+  <div class="col side">
+    <div class="label">Навигация</div>
+    <div class="nav" id="nav"></div>
+
+    <div class="label">Агенты на смене</div>
+    <div class="agents">
+      <div class="agent"><i style="background:var(--signal-good)"></i>Документы и данные</div>
+      <div class="agent"><i style="background:var(--signal-info)"></i>Веб-разработчик</div>
+      <div class="agent"><i style="background:var(--signal-work)"></i>SEO-специалист</div>
+      <div class="agent"><i style="background:var(--signal-idle)"></i>Видеосценарист</div>
+    </div>
+
+    <div class="label">Источники</div>
+    <div class="srcs" id="srcs"></div>
+  </div>
+
+  <div class="col main">
+    <div class="bar">
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="q" placeholder="поиск по заказам" autocomplete="off">
+      </div>
+      <div class="seg" id="окно">
+        <button data-h="24">24 ч</button>
+        <button data-h="48">48 ч</button>
+        <button data-h="0" aria-selected="true">всё</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <div id="список"></div>
+  </div>
+
+  <div class="col right" id="панель"></div>
+
+</div>
+
+<footer>
+  <span>Дизайн-система и интерфейс — Владимир Веселов</span>
+  <a href="index.html">← ко всем работам</a>
+  <a href="freelance-system.html">дизайн-система целиком</a>
+</footer>
+
+<script>
+const Д = {
+ "снято": "26.08.2026 00:23",
+ "сводка": {
+  "всего": 4495,
+  "прошли": 1326,
+  "отсеяно": 3169
+ },
+ "причины": [
+  {
+   "причина": "не наш профиль",
+   "n": 1226
+  },
+  {
+   "причина": "слабое совпадение с профилем",
+   "n": 467
+  },
+  {
+   "причина": "стоп-слово «логотип»",
+   "n": 182
+  },
+  {
+   "причина": "стоп-слово «съемк»",
+   "n": 126
+  },
+  {
+   "причина": "бюджет 1500 < 3000 ₽",
+   "n": 68
+  },
+  {
+   "причина": "стоп-слово «визуализац»",
+   "n": 50
+  },
+  {
+   "причина": "стоп-слово «иллюстрац»",
+   "n": 47
+  },
+  {
+   "причина": "стоп-слово «яндекс директ»",
+   "n": 46
+  }
+ ],
+ "источники": [
+  {
+   "имя": "FL.ru",
+   "n": 1584
+  },
+  {
+   "имя": "Kwork (лента @freelance_zakazy)",
+   "n": 1512
+  },
+  {
+   "имя": "Telegram/@freelance_zakazy",
+   "n": 1000
+  },
+  {
+   "имя": "Лидеры мнений",
+   "n": 122
+  },
+  {
+   "имя": "Telegram/@freelancebay",
+   "n": 89
+  },
+  {
+   "имя": "Telegram/@smmlancer",
+   "n": 74
+  }
+ ],
+ "статусы": [
+  {
+   "статус": "отклик",
+   "n": 47
+  },
+  {
+   "статус": "упущен",
+   "n": 6
+  },
+  {
+   "статус": "отклонен",
+   "n": 5
+  },
+  {
+   "статус": "оплачен",
+   "n": 1
+  }
+ ],
+ "лента": [
+  {
+   "заказ": "Разработка TГ бота мониторинга наличия топлива на АЗС",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242306",
+   "бюджет": 9000,
+   "услуга": "сайты",
+   "балл": 69,
+   "конкурентов": null,
+   "минут": 123
+  },
+  {
+   "заказ": "PM Проект Мен для создания сайта Юр услуг ЮФЛ",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242291",
+   "бюджет": 30000,
+   "услуга": "сайты",
+   "балл": 89,
+   "конкурентов": null,
+   "минут": 138
+  },
+  {
+   "заказ": "Автобиддер Wildberries часть 2, доработка логики",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242275",
+   "бюджет": 10000,
+   "услуга": "маркетплейсы",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 168
+  },
+  {
+   "заказ": "Сделать одностраничный сайт для запуска рекламы",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242258",
+   "бюджет": 15000,
+   "услуга": "сайты",
+   "балл": 69,
+   "конкурентов": null,
+   "минут": 183
+  },
+  {
+   "заказ": "Нужен сайт визитка",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242252",
+   "бюджет": 24000,
+   "услуга": "сайты",
+   "балл": 69,
+   "конкурентов": null,
+   "минут": 183
+  },
+  {
+   "заказ": "Каталог организаций в сфере красоты и здоровья",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242251",
+   "бюджет": 3000,
+   "услуга": "данные",
+   "балл": 54,
+   "конкурентов": null,
+   "минут": 213
+  },
+  {
+   "заказ": "Улучшить продвижение видео на Youtube",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242242",
+   "бюджет": 15000,
+   "услуга": "smm",
+   "балл": 84,
+   "конкурентов": null,
+   "минут": 213
+  },
+  {
+   "заказ": "Трекер иконка для приложения и сайта (Бюджет: 4 800 ₽)",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519506/treker-ikonka-dlya-prilojeniya-i-sayta-.html",
+   "бюджет": 4800,
+   "услуга": "сайты",
+   "балл": 55,
+   "конкурентов": null,
+   "минут": 228
+  },
+  {
+   "заказ": "Разработка сайта для аренды авто на Кипре",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519508/razrabotka-sayta-dlya-arendyi-avto-na-kipre-.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 54,
+   "конкурентов": null,
+   "минут": 243
+  },
+  {
+   "заказ": "Бот VK (Вконтакте) по api Яндекс Диск",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242224",
+   "бюджет": 7500,
+   "услуга": "smm",
+   "балл": 54,
+   "конкурентов": null,
+   "минут": 273
+  },
+  {
+   "заказ": "Ведение аккаунта на авито",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242211",
+   "бюджет": 30000,
+   "услуга": "smm",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 288
+  },
+  {
+   "заказ": "Заменить главную страницу сайта на Tilda",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242206",
+   "бюджет": 15000,
+   "услуга": "сайты",
+   "балл": 84,
+   "конкурентов": null,
+   "минут": 288
+  },
+  {
+   "заказ": "Недоступна админка сайта",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519502/nedostupna-adminka-sayta.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 49,
+   "конкурентов": null,
+   "минут": 313
+  },
+  {
+   "заказ": "Лидогенерации карточек маркетплейсов",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242092",
+   "бюджет": 30000,
+   "услуга": "маркетплейсы",
+   "балл": 89,
+   "конкурентов": null,
+   "минут": 313
+  },
+  {
+   "заказ": "Контент для канала в MAX (бытовая-правовая тематика)",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242163",
+   "бюджет": 9000,
+   "услуга": "smm",
+   "балл": 62,
+   "конкурентов": null,
+   "минут": 363
+  },
+  {
+   "заказ": "Задизайнить сайт на основе наших материалов",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519486/zadizaynit-sayt-na-osnove-nashih-materialov.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 49,
+   "конкурентов": null,
+   "минут": 393
+  },
+  {
+   "заказ": "Разработка и доработа сайтов Тильда",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242147",
+   "бюджет": 15000,
+   "услуга": "сайты",
+   "балл": 84,
+   "конкурентов": null,
+   "минут": 393
+  },
+  {
+   "заказ": "Создать фаил маркировки для пластикового ведра в формате Corel",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519477/sozdat-fail-markirovki-dlya-plastikovogo-vedra-v-formate-corel.html",
+   "бюджет": null,
+   "услуга": "данные",
+   "балл": 44,
+   "конкурентов": null,
+   "минут": 423
+  },
+  {
+   "заказ": "Внести правки на сайте (самописный лендинг)",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519474/vnesti-pravki-na-sayte-samopisnyiy-lending.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 64,
+   "конкурентов": null,
+   "минут": 423
+  },
+  {
+   "заказ": "Разработка WMS",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242120",
+   "бюджет": 200000,
+   "услуга": "сайты",
+   "балл": 69,
+   "конкурентов": null,
+   "минут": 423
+  },
+  {
+   "заказ": "Опубликовать статью в Дзен/VC или любой другой блог",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242132",
+   "бюджет": 7500,
+   "услуга": "копирайтинг",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 423
+  },
+  {
+   "заказ": "Адаптивная верстка одностраничного сайта (Бюджет: 30 000 ₽)",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519475/adaptivnaya-verstka-odnostranichnogo-sayta.html",
+   "бюджет": 30000,
+   "услуга": "сайты",
+   "балл": 94,
+   "конкурентов": null,
+   "минут": 423
+  },
+  {
+   "заказ": "Выдвинуть сайт в топ",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3233047",
+   "бюджет": 15000,
+   "услуга": "seo",
+   "балл": 89,
+   "конкурентов": null,
+   "минут": 438
+  },
+  {
+   "заказ": "Дизайн сайта с нуля",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242111",
+   "бюджет": 100000,
+   "услуга": "сайты",
+   "балл": 89,
+   "конкурентов": null,
+   "минут": 438
+  },
+  {
+   "заказ": "Разработка SaaS-сервиса в сфере GeoINT/OSINT.",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519469/razrabotka-saas-servisa-v-sfere-geoint-osint.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 49,
+   "конкурентов": null,
+   "минут": 453
+  },
+  {
+   "заказ": "Подключение, синхронизация ТСД+принтер этикеток Атол (PB-21) с 1С УНФ (Фреш)",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519453/podklyuchenie-sinhronizatsiya-tsdprinter-etiketok-atol-pb-21-s-1s-unf-fresh.html",
+   "бюджет": null,
+   "услуга": "crm",
+   "балл": 64,
+   "конкурентов": null,
+   "минут": 453
+  },
+  {
+   "заказ": "Разместить чат-бот на Railway",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242073",
+   "бюджет": 3000,
+   "услуга": "сайты",
+   "балл": 49,
+   "конкурентов": null,
+   "минут": 468
+  },
+  {
+   "заказ": "Настройка рекламы на Авито для мастера по ремонту холодильников (Томск). Оплата за лиды.",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519464/nastroyka-reklamyi-na-avito-dlya-mastera-po-remontu-holodilnikov-tomsk-oplata-za-lidyi.html",
+   "бюджет": null,
+   "услуга": "авито",
+   "балл": 49,
+   "конкурентов": null,
+   "минут": 468
+  },
+  {
+   "заказ": "Создания сайта для Учеб центра Английского",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242065",
+   "бюджет": 4500,
+   "услуга": "сайты",
+   "балл": 64,
+   "конкурентов": null,
+   "минут": 468
+  },
+  {
+   "заказ": "Спарсить 400к страниц с сайта",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519459/sparsit-400k-stranits-s-sayta-.html",
+   "бюджет": null,
+   "услуга": "данные",
+   "балл": 44,
+   "конкурентов": null,
+   "минут": 483
+  },
+  {
+   "заказ": "Модернизация сайта на MODX Revolution",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519458/modernizatsiya-sayta-na-modx-revolution.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 54,
+   "конкурентов": null,
+   "минут": 483
+  },
+  {
+   "заказ": "Привлечение лидов через MAX",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242067",
+   "бюджет": 45000,
+   "услуга": "smm",
+   "балл": 69,
+   "конкурентов": null,
+   "минут": 483
+  },
+  {
+   "заказ": "Парсинг",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242059",
+   "бюджет": 9000,
+   "услуга": "данные",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 483
+  },
+  {
+   "заказ": "Верстка ежедневник (Дизайнер-верстальщик)",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242063",
+   "бюджет": 25000,
+   "услуга": "сайты",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 483
+  },
+  {
+   "заказ": "Разработка сайта на основе шаблона (Бюджет: 50 000 ₽)",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519452/razrabotka-sayta-na-osnove-shablona.html",
+   "бюджет": 50000,
+   "услуга": "сайты",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 498
+  },
+  {
+   "заказ": "Парсинг открытого банка заданий ФИПИ ОГЭ + ЕГЭ",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242014",
+   "бюджет": 15000,
+   "услуга": "данные",
+   "балл": 84,
+   "конкурентов": null,
+   "минут": 498
+  },
+  {
+   "заказ": "Автопубликация статей в Яндекс Дзен (Бюджет: 15 000 ₽)",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519449/avtopublikatsiya-statey-v-yandeks-dzen.html",
+   "бюджет": 15000,
+   "услуга": "копирайтинг",
+   "балл": 69,
+   "конкурентов": null,
+   "минут": 513
+  },
+  {
+   "заказ": "Запуск ИИ исходящего обзвона (связка LPTreker+AMO CRM)",
+   "источник": "Kwork",
+   "url": "https://kwork.ru/projects/3242006",
+   "бюджет": 60000,
+   "услуга": "crm",
+   "балл": 94,
+   "конкурентов": null,
+   "минут": 528
+  },
+  {
+   "заказ": "Менеджер по блогерам",
+   "источник": "Лидеры мнений",
+   "url": "https://influencersoffuture.ru/lk/specialist/orders/2467/",
+   "бюджет": 5000,
+   "услуга": "smm",
+   "балл": 44,
+   "конкурентов": 1,
+   "минут": 543
+  },
+  {
+   "заказ": "Верстка страницы для сайта на WP",
+   "источник": "FL.ru",
+   "url": "https://www.fl.ru/projects/5519446/verstka-stranitsyi-dlya-sayta-na-wp.html",
+   "бюджет": null,
+   "услуга": "сайты",
+   "балл": 74,
+   "конкурентов": null,
+   "минут": 543
+  }
+ ],
+ "отсев": [
+  {
+   "заказ": "Нужно смонтировать 20-30 сек для ролика, трейлер для ролика из игры",
+   "источник": "FL.ru",
+   "бюджет": null,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «смонтировать»",
+   "минут": 18
+  },
+  {
+   "заказ": "Ищу дизайнера - превью для YouTube",
+   "источник": "Kwork",
+   "бюджет": 3000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «логотип»",
+   "минут": 48
+  },
+  {
+   "заказ": "Правки по сайту в Тильда",
+   "источник": "Kwork",
+   "бюджет": 1500,
+   "услуга": "сайты",
+   "балл": 0,
+   "причина": "бюджет 1500 < 3000 ₽",
+   "минут": 48
+  },
+  {
+   "заказ": "Кворк по поиску клиентов - старт без опыта",
+   "источник": "Kwork",
+   "бюджет": 3000,
+   "услуга": "seo",
+   "балл": 0,
+   "причина": "слабое совпадение с профилем",
+   "минут": 63
+  },
+  {
+   "заказ": "Обработка картинок",
+   "источник": "Kwork",
+   "бюджет": 6000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 78
+  },
+  {
+   "заказ": "Требуется сделать рутинные задачи",
+   "источник": "Kwork",
+   "бюджет": 54000,
+   "услуга": "копирайтинг",
+   "балл": 0,
+   "причина": "слабое совпадение с профилем",
+   "минут": 78
+  },
+  {
+   "заказ": "Текстуры наружной штукатурки панельных домов",
+   "источник": "Kwork",
+   "бюджет": 1500,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «иллюстрац»",
+   "минут": 108
+  },
+  {
+   "заказ": "Нулевая декларация по усн за 2025",
+   "источник": "Kwork",
+   "бюджет": 1500,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 108
+  },
+  {
+   "заказ": "разработать проектное решение дома престарелых",
+   "источник": "FL.ru",
+   "бюджет": null,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 108
+  },
+  {
+   "заказ": "Отрисовка планов и нанесение размеров (Бюджет: 2 000 ₽)",
+   "источник": "FL.ru",
+   "бюджет": 2000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «отрисов»",
+   "минут": 108
+  },
+  {
+   "заказ": "Нужно написать отзыв (Бюджет: 80 ₽)",
+   "источник": "FL.ru",
+   "бюджет": 80,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «написать отзыв»",
+   "минут": 108
+  },
+  {
+   "заказ": "Разработка плана-маршрута путешествия по Китаю",
+   "источник": "Kwork",
+   "бюджет": 30000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 123
+  },
+  {
+   "заказ": "Монтаж коротких видео",
+   "источник": "Kwork",
+   "бюджет": 12000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «тестовое задание»",
+   "минут": 138
+  },
+  {
+   "заказ": "Отрисовка планов и нанесение размеров",
+   "источник": "Kwork",
+   "бюджет": 2000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «отрисов»",
+   "минут": 153
+  },
+  {
+   "заказ": "Составить паспорта вентиляционных систем",
+   "источник": "Kwork",
+   "бюджет": 6000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 153
+  },
+  {
+   "заказ": "Исполнительная документация",
+   "источник": "FL.ru",
+   "бюджет": null,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 153
+  },
+  {
+   "заказ": "Планировка 2 этажного здания административно бытового здания 6-12 м (для всех)",
+   "источник": "FL.ru",
+   "бюджет": null,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 153
+  },
+  {
+   "заказ": "Руководить продажами",
+   "источник": "Kwork",
+   "бюджет": 500,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 168
+  },
+  {
+   "заказ": "Дорисовать анимацию движения верблюдов",
+   "источник": "Kwork",
+   "бюджет": 10500,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 168
+  },
+  {
+   "заказ": "Краткое обучение работе в 1С:Розница ПРОФ (онлайн)",
+   "источник": "Kwork",
+   "бюджет": 6000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "не наш профиль",
+   "минут": 183
+  },
+  {
+   "заказ": "3D-моделирование квартир, зданий под Unreal Engine",
+   "источник": "Kwork",
+   "бюджет": 30000,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «визуализац»",
+   "минут": 183
+  },
+  {
+   "заказ": "Проектное решение (Дом престарелых)",
+   "источник": "Kwork",
+   "бюджет": 200000,
+   "услуга": "копирайтинг",
+   "балл": 0,
+   "причина": "слабое совпадение с профилем",
+   "минут": 183
+  },
+  {
+   "заказ": "Word press / OS commerce",
+   "источник": "Kwork",
+   "бюджет": 1500,
+   "услуга": "сайты",
+   "балл": 0,
+   "причина": "бюджет 1500 < 3000 ₽",
+   "минут": 183
+  },
+  {
+   "заказ": "Переделать песню с помощью ИИ",
+   "источник": "Kwork",
+   "бюджет": 4500,
+   "услуга": null,
+   "балл": 0,
+   "причина": "стоп-слово «песн»",
+   "минут": 183
+  },
+  {
+   "заказ": "Хостинг Аренда виртуальных серверов vps/vds",
+   "источник": "Kwork",
+   "бюджет": 150000,
+   "услуга": "сайты",
+   "балл": 0,
+   "причина": "слабое совпадение с профилем",
+   "минут": 213
+  }
+ ],
+ "работы": [
+  {
+   "название": "SEO-копирайтер для онлайн-школы (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 1000,
+   "агент": "seo",
+   "статус": "отклонен"
+  },
+  {
+   "название": "Подбор каналов в Max (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 5000,
+   "агент": "marketer",
+   "статус": "отклик"
+  },
+  {
+   "название": "Анализ спроса на ремонт в Дубае (Kwork)",
+   "источник": "Kwork",
+   "цена": 15000,
+   "агент": "marketer",
+   "статус": "отклик"
+  },
+  {
+   "название": "Презентация по анализу 100 интернет-магазинов (Kwork)",
+   "источник": "Kwork",
+   "цена": 30000,
+   "агент": "designer",
+   "статус": "отклик"
+  },
+  {
+   "название": "Разработчик интерактивных заданий (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 0,
+   "агент": "webdev",
+   "статус": "отклонен"
+  },
+  {
+   "название": "Специалист по Яндекс Метрике (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 6000,
+   "агент": "seo",
+   "статус": "отклик"
+  },
+  {
+   "название": "Контент-менеджер для коуча первых лиц (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 20000,
+   "агент": "smm",
+   "статус": "отклик"
+  },
+  {
+   "название": "СЯ + SEO структура для производителя (Kwork)",
+   "источник": "Kwork",
+   "цена": 20000,
+   "агент": "seo",
+   "статус": "отклик"
+  },
+  {
+   "название": "Редактор гайда для родителей (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 6000,
+   "агент": "copywriter",
+   "статус": "отклик"
+  },
+  {
+   "название": "Аудит Авито, 3 аккаунта (Kwork)",
+   "источник": "Kwork",
+   "цена": 40000,
+   "агент": "strateg",
+   "статус": "отклик"
+  },
+  {
+   "название": "Бизнес-ассистент, полная занятость (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 60000,
+   "агент": "strateg",
+   "статус": "отклик"
+  },
+  {
+   "название": "Свадебная презентация 7 слайдов (Kwork)",
+   "источник": "Kwork",
+   "цена": 2000,
+   "агент": "designer",
+   "статус": "отклик"
+  },
+  {
+   "название": "Оцифровка базы со сканов (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 5000,
+   "агент": "docs",
+   "статус": "отклик"
+  },
+  {
+   "название": "Перенос Joomla -> WordPress + календарь (FL.ru)",
+   "источник": "FL.ru",
+   "цена": 18000,
+   "агент": "webdev",
+   "статус": "отклик"
+  },
+  {
+   "название": "Подборка референсов для студии рисования (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 5000,
+   "агент": "docs",
+   "статус": "отклик"
+  },
+  {
+   "название": "Анализ рынка и конкурентов (FL.ru)",
+   "источник": "FL.ru",
+   "цена": 15000,
+   "агент": "marketer",
+   "статус": "отклик"
+  },
+  {
+   "название": "ИИ-агент автозагрузки Shorts (Kwork)",
+   "источник": "Kwork",
+   "цена": 6000,
+   "агент": "webdev",
+   "статус": "отклик"
+  },
+  {
+   "название": "Автоматизация доступа в Telegram-клуб (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 15000,
+   "агент": "webdev",
+   "статус": "отклик"
+  },
+  {
+   "название": "Авитолог: органическое продвижение курсов (Лидеры)",
+   "источник": "Лидеры мнений",
+   "цена": 6000,
+   "агент": "marketer",
+   "статус": "отклонен"
+  },
+  {
+   "название": "Продвижение ВК: магазин одежды с ИИ-контентом (FL.ru)",
+   "источник": "FL.ru",
+   "цена": 30000,
+   "агент": "smm",
+   "статус": "отклонен"
+  }
+ ]
+};
+
+const деньги = n => n ? new Intl.NumberFormat('ru-RU').format(n) + ' ₽' : 'не указан';
+const срок = m => m === null || m === undefined ? '—'
+  : m < 60 ? m + ' мин' : m < 1440 ? Math.floor(m/60) + ' ч' : Math.floor(m/1440) + ' дн';
+const экран = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function вердикт(б){
+  if (б >= 75) return {к:'b-good',  т:'берём'};
+  if (б >= 55) return {к:'b-watch', т:'смотрим'};
+  if (б >= 45) return {к:'b-info',  т:'под вопросом'};
+  return {к:'b-idle', т:'слабо'};
+}
+function цветБалла(б){
+  return б >= 75 ? 'var(--signal-good)' : б >= 55 ? 'var(--signal-watch)'
+       : б >= 45 ? 'var(--signal-info)' : 'var(--text-faint)';
+}
+
+let вкладка = 'лента', часы = 0, запрос = '', выбран = 0;
+
+document.getElementById('снято').textContent = 'снимок ' + Д.снято;
+
+document.getElementById('srcs').innerHTML = Д.источники
+  .map(s => `<div class="src"><span>${экран(s.имя).replace(' (лента @freelance_zakazy)','')}</span><b>${s.n}</b></div>`)
+  .join('');
+
+function вкладки(){
+  const t = [
+    ['лента','Лента', Д.лента.length],
+    ['отсев','Отсев', Д.отсев.length],
+    ['работы','Реестр работ', Д.работы.length],
+  ];
+  document.getElementById('nav').innerHTML = t.map(([k,имя,n]) =>
+    `<button data-t="${k}" aria-selected="${вкладка===k}">${имя}<span class="n">${n}</span></button>`).join('');
+}
+
+function статистика(){
+  const с = Д.сводка;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="k">Найдено</div><div class="v mono">${с.всего}</div></div>
+    <div class="stat good"><div class="k">Прошли отбор</div><div class="v mono">${с.прошли}</div></div>
+    <div class="stat stop"><div class="k">Отсеяно</div><div class="v mono">${с.отсеяно}</div></div>`;
+}
+
+function текущие(){
+  let сп = вкладка === 'лента' ? Д.лента : вкладка === 'отсев' ? Д.отсев : Д.работы;
+  if (часы) сп = сп.filter(з => (з.минут ?? 1e9) <= часы * 60);
+  if (запрос){
+    const q = запрос.toLowerCase();
+    сп = сп.filter(з => ((з.заказ || з.название || '') + ' ' + (з.услуга || з.агент || '')).toLowerCase().includes(q));
+  }
+  return сп;
+}
+
+function список(){
+  const сп = текущие();
+  const узел = document.getElementById('список');
+  if (!сп.length){
+    узел.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
+      <div style="color:var(--text-body)">Ничего не найдено</div>
+      <div style="margin-top:5px">Снимите фильтр или измените запрос.</div></div>`;
+    return;
+  }
+  узел.innerHTML = '<div class="rows">' + сп.map((з,i) => {
+    if (вкладка === 'работы'){
+      const с = з.статус;
+      const к = с === 'оплачен' ? 'b-good' : с === 'отклик' ? 'b-info'
+              : с === 'отклонен' ? 'b-stop' : 'b-idle';
+      return `<div class="row" data-i="${i}" aria-selected="${i===выбран}">
+        <div class="score" style="color:var(--text-faint)">—</div>
+        <div><div class="ttl">${экран(з.название)}</div>
+             <div class="sub">${экран(з.агент || '')} · ${экран(з.источник || '')}</div></div>
+        <div class="bud mono">${деньги(з.цена)}</div>
+        <div><span class="badge ${к}">${экран(с)}</span></div></div>`;
+    }
+    const б = з.балл ?? 0;
+    const в = вкладка === 'отсев'
+      ? {к:'b-stop', т:'отсев'}
+      : вердикт(б);
+    return `<div class="row" data-i="${i}" aria-selected="${i===выбран}">
+      <div class="score" style="color:${цветБалла(б)}">${б}</div>
+      <div><div class="ttl">${экран(з.заказ)}</div>
+           <div class="sub">${экран(з.услуга || '—')} · ${экран((з.источник||'').replace(' (лента @freelance_zakazy)',''))} · ${срок(з.минут)}</div></div>
+      <div class="bud mono">${деньги(з.бюджет)}</div>
+      <div><span class="badge ${в.к}">${в.т}</span></div></div>`;
+  }).join('') + '</div>';
+
+  узел.querySelectorAll('.row').forEach(r => r.addEventListener('click', () => {
+    выбран = +r.dataset.i; список(); панель();
+  }));
+}
+
+function панель(){
+  const сп = текущие();
+  const з = сп[выбран] || сп[0];
+  const узел = document.getElementById('панель');
+  if (!з){ узел.innerHTML = `<div class="empty" style="border:none;background:none">Выберите заказ слева</div>`; return; }
+
+  if (вкладка === 'работы'){
+    узел.innerHTML = `<div class="card">
+      <div class="label">Работа в реестре</div>
+      <div class="h">${экран(з.название)}</div>
+      <div class="kv">
+        <div><div class="k">Цена</div><div class="v mono">${деньги(з.цена)}</div></div>
+        <div><div class="k">Статус</div><div class="v">${экран(з.статус)}</div></div>
+        <div><div class="k">Агент</div><div class="v">${экран(з.агент || '—')}</div></div>
+        <div><div class="k">Площадка</div><div class="v">${экран(з.источник || '—')}</div></div>
+      </div>
+      <div class="note">Реестр ведётся отдельной таблицей: каждый отклик получает статус
+      и причину смены. По нему считается, что сработало, а что нет.</div></div>`;
+    return;
+  }
+
+  const б = з.балл ?? 0;
+  const в = вкладка === 'отсев' ? {к:'b-stop', т:'отсев'} : вердикт(б);
+  const причины = [];
+  if (з.услуга) причины.push([`профиль «${з.услуга}», совпадения в заголовке`, 'вес 3']);
+  if (з.бюджет) причины.push([`бюджет ${деньги(з.бюджет)} выше порога`, '+18']);
+  if ((з.минут ?? 1e9) < 180) причины.push(['свежий, меньше 3 ч', '+12']);
+  if (з.конкурентов !== null && з.конкурентов !== undefined)
+    причины.push([`откликов у конкурентов: ${з.конкурентов}`, з.конкурентов <= 5 ? '+10' : '−6']);
+  if (вкладка === 'отсев' && з.причина) причины.push([экран(з.причина), 'отсев']);
+
+  узел.innerHTML = `
+    <div class="card">
+      <div class="gauge">
+        <span class="num" style="color:${цветБалла(б)}">${б}</span>
+        <span class="max">/100</span>
+      </div>
+      <div class="meter"><i style="width:${Math.max(2,Math.min(100,б))}%;background:${цветБалла(б)}"></i></div>
+      <div class="verdict" style="color:${цветБалла(б)}">${в.т} · балл</div>
+      <div class="h">${экран(з.заказ)}</div>
+      <div class="kv">
+        <div><div class="k">Бюджет</div><div class="v mono">${деньги(з.бюджет)}</div></div>
+        <div><div class="k">Услуга</div><div class="v">${экран(з.услуга || '—')}</div></div>
+        <div><div class="k">Площадка</div><div class="v">${экран((з.источник||'').replace(' (лента @freelance_zakazy)',''))}</div></div>
+        <div><div class="k">Возраст</div><div class="v mono">${срок(з.минут)}</div></div>
+      </div>
+      ${з.url ? `<div class="act"><a class="btn" href="${экран(з.url)}" target="_blank" rel="noopener">Открыть заказ</a>
+                 <button class="btn ghost">В работу</button></div>` : ''}
+    </div>
+    <div class="card">
+      <div class="label">Почему такой балл</div>
+      <ul class="why">${причины.map(([т,в2]) =>
+        `<li><span>${т}</span><b class="${String(в2).startsWith('−')||в2==='отсев'?'neg':''}">${в2}</b></li>`).join('')}</ul>
+    </div>
+    ${вкладка === 'отсев' ? `<div class="hint stop"><span>
+        <b>Заказ отсеян автоматически</b>
+        <span>Причина записана в базу. По накопленному отсеву раз в неделю проверяем,
+        не режет ли фильтр живое: так нашлось стоп-слово «очно», которое рубило «срочно».</span>
+      </span></div>` : ''}`;
+}
+
+function перерисовать(){ вкладки(); статистика(); список(); панель(); }
+
+document.getElementById('nav').addEventListener('click', e => {
+  const b = e.target.closest('button[data-t]'); if (!b) return;
+  вкладка = b.dataset.t; выбран = 0; перерисовать();
+});
+document.getElementById('окно').addEventListener('click', e => {
+  const b = e.target.closest('button[data-h]'); if (!b) return;
+  часы = +b.dataset.h; выбран = 0;
+  document.querySelectorAll('#окно button').forEach(x =>
+    x.setAttribute('aria-selected', x === b));
+  список(); панель();
+});
+document.getElementById('q').addEventListener('input', e => {
+  запрос = e.target.value; выбран = 0; список(); панель();
+});
+
+перерисовать();
+</script>
+</body>
+</html>

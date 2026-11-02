@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f5b800">
+<title>Финансовая грамотность для детей 🐷💰</title>
+<meta name="description" content="Финансовая грамотность для детей: уроки про деньги, накопления и первые траты в игровой форме.">
+<style>
+/* ============================================================
+   ФИНАНСОВАЯ ГРАМОТНОСТЬ ДЛЯ ДЕТЕЙ
+   Автономное приложение. Все данные — в localStorage.
+   Шрифты — только системные (полный офлайн).
+   ============================================================ */
+
+:root{
+  --gold:#f5b800;
+  --gold-dark:#d99e00;
+  --gold-light:#ffe88a;
+  --green:#2bb673;
+  --green-light:#d6f5e6;
+  --orange:#ff8a3d;
+  --red:#e05555;
+  --blue:#4a90e2;
+  --purple:#9b5de5;
+  --bg:#fff9ec;
+  --card:#ffffff;
+  --text:#2d2a26;
+  --muted:#8a8378;
+  --border:#f0e6cf;
+  --shadow:0 6px 20px rgba(180,140,0,.12);
+  --radius:18px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1d1b17;
+    --card:#2a2722;
+    --text:#f3ede0;
+    --muted:#a89f8e;
+    --border:#3a352c;
+    --gold-light:#594c1e;
+    --green-light:#1f3a2c;
+    --shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.5;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+
+/* ---------- Layout ---------- */
+#app{min-height:100vh;display:flex;flex-direction:column}
+.screen{display:none;flex:1;animation:fade .35s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:230px;background:var(--card);border-right:1px solid var(--border);
+  padding:18px 12px;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;gap:6px;flex-shrink:0;
+}
+.sidebar .brand{font-weight:800;font-size:18px;padding:10px 12px 18px;display:flex;align-items:center;gap:8px}
+.nav-btn{
+  display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;
+  font-size:15px;font-weight:600;color:var(--muted);transition:.2s;text-align:left;width:100%;
+  position:relative;
+}
+.nav-btn .ic{font-size:22px;width:26px;text-align:center}
+.nav-btn:hover{background:var(--bg)}
+.nav-btn.active{background:var(--gold-light);color:var(--text)}
+.nav-btn .badge{
+  position:absolute;right:12px;background:var(--red);color:#fff;font-size:11px;
+  min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px;
+}
+.main{flex:1;min-width:0;padding:0 0 90px}
+.container{max-width:760px;margin:0 auto;padding:18px}
+
+/* top bar */
+.topbar{
+  position:sticky;top:0;z-index:20;background:var(--bg);
+  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-bottom:1px solid var(--border);
+}
+.topbar h1{font-size:20px;font-weight:800}
+.who{display:flex;align-items:center;gap:10px;font-weight:700}
+.who .av{width:38px;height:38px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:20px}
+
+/* bottom nav (mobile) */
+.bottomnav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:var(--card);border-top:1px solid var(--border);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  justify-content:space-around;box-shadow:0 -4px 20px rgba(0,0,0,.06);
+}
+.bottomnav button{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10px;font-weight:600;color:var(--muted);padding:6px 2px;border-radius:12px;position:relative;
+}
+.bottomnav button .ic{font-size:22px}
+.bottomnav button.active{color:var(--gold-dark)}
+.bottomnav button .badge{
+  position:absolute;top:2px;right:50%;margin-right:-22px;background:var(--red);color:#fff;font-size:10px;
+  min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;
+}
+
+@media(max-width:760px){
+  .sidebar{display:none}
+  .bottomnav{display:flex}
+  .main{padding-bottom:80px}
+}
+
+/* ---------- Cards & UI ---------- */
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid var(--border)}
+.card h2{font-size:17px;margin-bottom:10px}
+.card h3{font-size:15px;margin-bottom:8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:10px;align-items:center}
+.row.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.grid{display:grid;gap:12px}
+.grid2{grid-template-columns:1fr 1fr}
+.grid3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr 1fr}}
+
+.btn{
+  background:var(--gold);color:#3a2e00;font-weight:800;padding:13px 18px;border-radius:14px;
+  font-size:15px;transition:.15s;box-shadow:0 4px 0 var(--gold-dark);display:inline-flex;align-items:center;gap:8px;justify-content:center;
+}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.btn.full{width:100%}
+.btn.green{background:var(--green);color:#fff;box-shadow:0 4px 0 #1d915a}
+.btn.green:active{box-shadow:none}
+.btn.ghost{background:var(--bg);color:var(--text);box-shadow:none;border:1.5px solid var(--border);font-weight:700}
+.btn.red{background:var(--red);color:#fff;box-shadow:0 4px 0 #b13e3e}
+.btn.blue{background:var(--blue);color:#fff;box-shadow:0 4px 0 #336bb0}
+.btn.sm{padding:8px 12px;font-size:13px;box-shadow:none;border-radius:10px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;
+  background:var(--bg);color:var(--text);transition:.15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field textarea{min-height:70px;resize:vertical}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:700;background:var(--gold-light);color:var(--text)}
+.pill.green{background:var(--green-light);color:var(--green)}
+.pill.orange{background:#ffe6d2;color:#c4621f}
+.pill.blue{background:#dceafa;color:#2c5d96}
+.pill.red{background:#fbdcdc;color:#b13e3e}
+.pill.purple{background:#ece0fb;color:#7b3fc4}
+
+.coin{color:var(--gold-dark);font-weight:800}
+.bigcoin{font-size:34px;font-weight:900;color:var(--gold-dark);display:flex;align-items:center;gap:8px}
+
+.emptystate{text-align:center;padding:36px 16px;color:var(--muted)}
+.emptystate .em{font-size:56px;display:block;margin-bottom:10px;animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* segmented */
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:4px;gap:4px;border:1px solid var(--border)}
+.seg button{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button.active{background:var(--card);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+
+/* quest card */
+.qcard{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:16px;background:var(--card);border:1.5px solid var(--border);margin-bottom:12px;transition:.2s}
+.qcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.qcard .qic{font-size:34px;width:54px;height:54px;border-radius:14px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qcard .qbody{flex:1;min-width:0}
+.qcard .qbody .t{font-weight:800;font-size:15px}
+.qcard .qbody .d{color:var(--muted);font-size:13px;margin:3px 0 8px}
+
+/* progress */
+.bar{height:14px;background:var(--bg);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--orange));border-radius:10px;transition:width 1s cubic-bezier(.2,.8,.2,1);width:0}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(40px);z-index:200;
+  background:var(--text);color:var(--bg);padding:13px 20px;border-radius:30px;font-weight:700;font-size:14px;
+  opacity:0;transition:.3s;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.3);max-width:90%}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;padding:0}
+.modal.open{display:flex;animation:fade .2s}
+.modal .sheet{background:var(--card);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:22px;max-height:92vh;overflow-y:auto;animation:slideup .3s cubic-bezier(.2,.8,.2,1)}
+@media(min-width:560px){.modal{align-items:center;padding:20px}.modal .sheet{border-radius:24px}}
+@keyframes slideup{from{transform:translateY(60px)}to{transform:none}}
+.modal .sheet h2{margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal .x{font-size:26px;line-height:1;color:var(--muted)}
+
+/* confetti */
+.confetti{position:fixed;width:10px;height:14px;z-index:300;pointer-events:none;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.2}}
+
+/* onboarding */
+.ob{max-width:560px;margin:0 auto;padding:40px 20px;text-align:center}
+.ob .logo{font-size:72px;animation:bob 3s ease-in-out infinite}
+.ob h1{font-size:26px;margin:10px 0}
+.agegrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px}
+@media(max-width:480px){.agegrid{grid-template-columns:1fr}}
+.agecard{background:var(--card);border:2.5px solid var(--border);border-radius:20px;padding:22px 14px;transition:.2s;text-align:center}
+.agecard:hover{border-color:var(--gold);transform:translateY(-3px)}
+.agecard.sel{border-color:var(--gold);background:var(--gold-light)}
+.agecard .e{font-size:46px}
+.agecard .n{font-weight:800;margin-top:8px}
+.agecard .a{color:var(--muted);font-size:13px}
+
+/* piggy (малыши) */
+.piggy-wrap{text-align:center;padding:10px}
+.piggy{font-size:90px;display:inline-block;transition:transform .8s cubic-bezier(.2,1.4,.4,1);transform-origin:bottom}
+
+/* glass (дети) */
+.glass{width:120px;height:170px;margin:0 auto;border:5px solid var(--gold-dark);border-top:none;border-radius:8px 8px 28px 28px;position:relative;overflow:hidden;background:var(--bg)}
+.glass .liquid{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#6fd0ff,#3a9fe0);transition:height 1.2s cubic-bezier(.2,.8,.2,1);height:0}
+.glass .liquid::before{content:"";position:absolute;top:-6px;left:0;right:0;height:12px;background:#9be0ff;border-radius:50%}
+
+/* lesson */
+.lesson-body p{margin-bottom:12px}
+.lesson-ex{background:var(--green-light);border-radius:14px;padding:14px;margin:14px 0;font-size:14px}
+.quiz-opt{display:block;width:100%;text-align:left;padding:13px 16px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;font-weight:600;transition:.15s;background:var(--bg)}
+.quiz-opt:hover{border-color:var(--gold)}
+.quiz-opt.correct{background:var(--green-light);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:#fbdcdc;border-color:var(--red);color:var(--red)}
+
+.done-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-light);color:var(--green);font-weight:800;font-size:12px;padding:5px 11px;border-radius:20px}
+
+/* list item */
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.li:last-child{border-bottom:none}
+.li .lic{font-size:24px;width:40px;height:40px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.li .lt{flex:1;min-width:0}
+.li .lt .n{font-weight:700;font-size:14px}
+.li .lt .s{font-size:12px;color:var(--muted)}
+.li .amt{font-weight:800;white-space:nowrap}
+
+/* stat tiles */
+.stat{background:var(--bg);border-radius:14px;padding:14px;text-align:center}
+.stat .v{font-size:22px;font-weight:900}
+.stat .l{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+
+/* parent table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+
+/* pin */
+.pinpad{max-width:300px;margin:0 auto}
+.pin-display{display:flex;gap:12px;justify-content:center;margin:18px 0}
+.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--gold-dark)}
+.pin-dot.on{background:var(--gold)}
+.pin-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pin-keys button{aspect-ratio:1;background:var(--card);border-radius:50%;font-size:24px;font-weight:800;box-shadow:var(--shadow);transition:.1s}
+.pin-keys button:active{transform:scale(.92);background:var(--gold-light)}
+
+.fab{position:fixed;right:18px;bottom:96px;z-index:40;width:58px;height:58px;border-radius:50%;background:var(--gold);box-shadow:0 6px 20px rgba(217,158,0,.5);font-size:30px;color:#3a2e00;display:flex;align-items:center;justify-content:center}
+@media(min-width:761px){.fab{bottom:30px}}
+
+.chip{display:inline-block;padding:6px 12px;border-radius:20px;background:var(--bg);border:1.5px solid var(--border);font-size:13px;font-weight:700;margin:0 6px 6px 0}
+.chip.sel{background:var(--gold);color:#3a2e00;border-color:var(--gold)}
+
+.insight{background:linear-gradient(120deg,var(--gold-light),#fff3cf);border-radius:14px;padding:14px;font-weight:600;font-size:14px;display:flex;gap:10px;align-items:center}
+@media (prefers-color-scheme: dark){.insight{background:linear-gradient(120deg,#4a3f15,#3a3210)}}
+
+.tag-cat{font-size:12px}
+.section-title{font-weight:800;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:18px 4px 10px}
+
+a.link{color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/finkids.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/finkids.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+<h1 style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0">Финансовая грамотность для детей</h1>
+<div id="app"></div>
+<div id="toast"></div>
+<div id="modal-root"></div>
+
+<script>
+/* ============================================================
+   ДАННЫЕ ПРИЛОЖЕНИЯ (базы)
+   ============================================================ */
+
+const AGE = {
+  baby:{key:'baby', name:'Малыши', age:'3–5 лет', emoji:'🧸', color:'#9b5de5'},
+  kid:{key:'kid', name:'Дети', age:'6–9 лет', emoji:'⭐', color:'#4a90e2'},
+  teen:{key:'teen', name:'Подростки', age:'10–13 лет', emoji:'🚀', color:'#2bb673'},
+};
+
+const CURRENCIES = {'₽':'₽','$':'$','€':'€'};
+
+const EXPENSE_CATS = [
+  {key:'food', name:'Еда', icon:'🍔', color:'#ff8a3d'},
+  {key:'fun', name:'Развлечения', icon:'🎮', color:'#9b5de5'},
+  {key:'toys', name:'Игрушки', icon:'🧸', color:'#4a90e2'},
+  {key:'friends', name:'Друзья', icon:'👫', color:'#2bb673'},
+  {key:'sweets', name:'Сладости', icon:'🍬', color:'#e05599'},
+  {key:'books', name:'Книги', icon:'📚', color:'#f5b800'},
+  {key:'clothes', name:'Одежда', icon:'👕', color:'#16b5c4'},
+  {key:'other', name:'Другое', icon:'✨', color:'#8a8378'},
+];
+
+const QUEST_CATS = {
+  home:{name:'По дому', icon:'🏠'},
+  study:{name:'Учёба', icon:'📖'},
+  good:{name:'Доброе дело', icon:'💚'},
+  creative:{name:'Творчество', icon:'🎨'},
+  sport:{name:'Спорт', icon:'⚽'},
+};
+const DIFF = {
+  easy:{name:'Лёгкий', time:'до 30 мин', icon:'🟢'},
+  medium:{name:'Средний', time:'несколько часов', icon:'🟡'},
+  hard:{name:'Сложный', time:'несколько дней', icon:'🔴'},
+};
+
+/* МОДУЛЬ 2 — шаблоны квестов (24 шт) */
+const QUEST_TEMPLATES = [
+  // Малыши
+  {age:'baby', title:'Убрать игрушки', desc:'Сложи все игрушки в коробку', reward:10, cat:'home', diff:'easy', icon:'🧸'},
+  {age:'baby', title:'Накрыть на стол', desc:'Помоги расставить тарелки и ложки', reward:10, cat:'home', diff:'easy', icon:'🍽️'},
+  {age:'baby', title:'Нарисовать открытку', desc:'Нарисуй красивую открытку для бабушки', reward:15, cat:'creative', diff:'easy', icon:'🎨'},
+  {age:'baby', title:'Покормить питомца', desc:'Насыпь корм кошке или собачке', reward:10, cat:'good', diff:'easy', icon:'🐱'},
+  {age:'baby', title:'Сложить одежду', desc:'Сложи свои футболки аккуратно', reward:10, cat:'home', diff:'easy', icon:'👕'},
+  {age:'baby', title:'Полить цветок', desc:'Полей цветочек из лейки', reward:8, cat:'home', diff:'easy', icon:'🌷'},
+  {age:'baby', title:'Зарядка с мамой', desc:'Сделай весёлую зарядку', reward:8, cat:'sport', diff:'easy', icon:'🤸'},
+  {age:'baby', title:'Собрать книжки', desc:'Поставь книжки на полку', reward:8, cat:'home', diff:'easy', icon:'📚'},
+  // Дети
+  {age:'kid', title:'Вымыть посуду', desc:'Помой тарелки после ужина', reward:25, cat:'home', diff:'medium', icon:'🍽️'},
+  {age:'kid', title:'Прочитать книгу', desc:'Прочитай главу и расскажи о чём она', reward:30, cat:'study', diff:'medium', icon:'📖'},
+  {age:'kid', title:'Помочь с покупками', desc:'Помоги донести и разложить продукты', reward:25, cat:'good', diff:'easy', icon:'🛒'},
+  {age:'kid', title:'Прополоть грядку', desc:'Убери сорняки на грядке', reward:35, cat:'home', diff:'medium', icon:'🌱'},
+  {age:'kid', title:'Заправлять кровать неделю', desc:'Каждое утро 7 дней', reward:40, cat:'home', diff:'hard', icon:'🛏️'},
+  {age:'kid', title:'Вынести мусор', desc:'Вынеси мусорное ведро', reward:15, cat:'home', diff:'easy', icon:'🗑️'},
+  {age:'kid', title:'Сделать уроки сам', desc:'Выполни домашнее задание без напоминаний', reward:30, cat:'study', diff:'medium', icon:'✏️'},
+  {age:'kid', title:'Помочь младшему', desc:'Поиграй или помоги младшему брату/сестре', reward:25, cat:'good', diff:'easy', icon:'🧒'},
+  {age:'kid', title:'Тренировка', desc:'Сходи на тренировку или побегай 20 минут', reward:20, cat:'sport', diff:'easy', icon:'⚽'},
+  {age:'kid', title:'Сделать поделку', desc:'Смастери что-нибудь своими руками', reward:25, cat:'creative', diff:'medium', icon:'✂️'},
+  // Подростки
+  {age:'teen', title:'Приготовить ужин', desc:'Приготовь полноценный ужин для семьи', reward:100, cat:'home', diff:'hard', icon:'🍳'},
+  {age:'teen', title:'Найти способ сэкономить', desc:'Предложи реальный способ сэкономить семейный бюджет', reward:80, cat:'study', diff:'medium', icon:'💡'},
+  {age:'teen', title:'Помочь соседу', desc:'Помоги пожилому соседу с делами', reward:70, cat:'good', diff:'medium', icon:'🤝'},
+  {age:'teen', title:'Помыть машину', desc:'Помой семейный автомобиль', reward:90, cat:'home', diff:'medium', icon:'🚗'},
+  {age:'teen', title:'Составить меню на неделю', desc:'Спланируй меню и список продуктов', reward:60, cat:'study', diff:'medium', icon:'📋'},
+  {age:'teen', title:'Гулять с собакой неделю', desc:'Выгуливай собаку утром и вечером 7 дней', reward:120, cat:'sport', diff:'hard', icon:'🐕'},
+];
+
+/* МОДУЛЬ 5 — уроки (15 шт, 5 на группу) */
+const LESSONS = [
+  // Малыши
+  {age:'baby', icon:'💰', title:'Что такое деньги', body:[
+    'Деньги — это то, чем мы платим в магазине, когда хотим что-то купить. Без денег нельзя получить новую игрушку или вкусняшку.',
+    'Деньги бывают разные: монетки, которые звенят, и бумажные купюры. Их дают взрослым за работу.'],
+    example:'Мама дала кассиру деньги — и взамен получила хлеб и молоко. Так работает магазин!',
+    q:'Зачем нужны деньги?', opts:['Чтобы покупать вещи','Чтобы кушать их','Чтобы рисовать'], a:0},
+  {age:'baby', icon:'🪙', title:'Монеты и купюры', body:[
+    'Монеты — круглые и металлические, они звенят в кармане. Купюры — бумажные и шуршат.',
+    'У разных денег разная ценность. На каждой написана цифра — сколько она стоит.'],
+    example:'У тебя 5 монет по 1 рублю — это столько же, сколько одна монета 5 рублей!',
+    q:'Какие деньги шуршат?', opts:['Монеты','Купюры','Камешки'], a:1},
+  {age:'baby', icon:'🏪', title:'Магазин: продавец и покупатель', body:[
+    'В магазине есть продавец — он помогает выбрать товар. И есть покупатель — это мы, мы приходим что-то купить.',
+    'Покупатель даёт деньги, а продавец даёт товар. Это честный обмен.'],
+    example:'Ты захотел яблоко. Продавец дал яблоко, ты дал монетку. Все довольны!',
+    q:'Кто даёт нам товар в магазине?', opts:['Продавец','Собака','Дерево'], a:0},
+  {age:'baby', icon:'🤔', title:'Хочу и нужно', body:[
+    '«Нужно» — это то, без чего нельзя: еда, тёплая одежда, лекарства.',
+    '«Хочу» — это приятные вещи, без которых можно прожить: ещё одна игрушка, конфета.'],
+    example:'Зимой тёплая куртка — это «нужно». А десятая машинка — это «хочу».',
+    q:'Что из этого «нужно»?', opts:['Конфета','Еда','Игрушка'], a:1},
+  {age:'baby', icon:'🐷', title:'Что такое копилка', body:[
+    'Копилка — это домик для денег. Туда складывают монетки, чтобы они накопились.',
+    'Когда монеток станет много, можно купить что-то большое и желанное.'],
+    example:'Каждый день кидаешь монетку в свинку-копилку — и скоро накопишь на большую игрушку!',
+    q:'Зачем нужна копилка?', opts:['Чтобы копить деньги','Чтобы шуметь','Чтобы кушать'], a:0},
+  // Дети
+  {age:'kid', icon:'👷', title:'Откуда берутся деньги', body:[
+    'Деньги не растут на деревьях. Взрослые получают их за работу — когда делают что-то полезное для других людей.',
+    'Доктор лечит, учитель учит, водитель возит. За это им платят зарплату. Можно зарабатывать и оказывая услуги — например, выгуливая собак соседей.'],
+    example:'Папа работает программистом — пишет программы для компьютера, и за это получает деньги.',
+    q:'За что взрослые получают деньги?', opts:['За работу','Просто так','За сон'], a:0},
+  {age:'kid', icon:'🏦', title:'Зачем копить', body:[
+    'Копить — значит откладывать часть денег, а не тратить всё сразу. Накопленное помогает купить дорогую вещь или выручает в трудный момент.',
+    'Есть правило: сначала отложи немного, а потом трать остальное. Так копилка растёт сама собой.'],
+    example:'Если откладывать по 50 рублей в неделю, через 10 недель будет уже 500 рублей!',
+    q:'Что значит «копить»?', opts:['Тратить всё сразу','Откладывать часть денег','Терять деньги'], a:1},
+  {age:'kid', icon:'🏷️', title:'Скидки и акции', body:[
+    'Скидка — это когда товар продают дешевле обычного. Магазины делают скидки, чтобы мы покупали больше.',
+    'Но будь внимателен: иногда «скидка» — это уловка. Цену сначала повышают, а потом «снижают». Покупай только то, что действительно нужно.'],
+    example:'«Купи 3 по цене 2!» звучит выгодно. Но нужны ли тебе целых три? Если нет — это не экономия.',
+    q:'Когда скидка действительно выгодна?', opts:['Всегда','Когда товар тебе нужен','Никогда'], a:1},
+  {age:'kid', icon:'⚠️', title:'Что такое долг', body:[
+    'Долг — это когда ты взял деньги или вещь у кого-то и должен вернуть. Брать в долг — большая ответственность.',
+    'Если не вернуть долг вовремя, друг обидится, а взрослым иногда приходится возвращать даже больше, чем брали. Поэтому долгов лучше избегать.'],
+    example:'Ты занял у друга 100 рублей на мороженое. Теперь у тебя на 100 рублей меньше — их надо вернуть.',
+    q:'Что нужно сделать с долгом?', opts:['Забыть про него','Обязательно вернуть','Взять ещё'], a:1},
+  {age:'kid', icon:'🎯', title:'Цель и план', body:[
+    'Цель — это то, на что ты копишь: велосипед, игра, подарок. Когда есть цель, копить интереснее.',
+    'Чтобы достичь цели, составь план: сколько откладывать каждую неделю и сколько недель ждать.'],
+    example:'Велосипед стоит 4000 рублей. Если копить по 200 рублей в неделю — накопишь за 20 недель.',
+    q:'Что помогает достичь цели?', opts:['План','Ничего','Желание потратить'], a:0},
+  // Подростки
+  {age:'teen', icon:'📊', title:'Бюджет: доходы и расходы', body:[
+    'Бюджет — это план денег. Доходы — то, что приходит (карманные, подарки, заработок). Расходы — то, что уходит (траты).',
+    'Главное правило бюджета: расходы не должны быть больше доходов. Разницу между ними — откладывай. Если тратишь больше, чем получаешь, появляются долги.'],
+    example:'Доход 1000 ₽ в месяц, расходы 700 ₽. Остаётся 300 ₽ — их можно отложить на цель.',
+    q:'Каким должен быть здоровый бюджет?', opts:['Расходы больше доходов','Доходы больше или равны расходам','Без разницы'], a:1},
+  {age:'teen', icon:'%', title:'Что такое процент', body:[
+    'Процент — это часть от целого, сотая доля. 1% — это одна сотая. 50% — это половина, 100% — это всё целиком.',
+    'Проценты везде: скидка 20%, кэшбэк 5%, налог. Чтобы найти процент от числа, умножь число на процент и раздели на 100.'],
+    example:'Скидка 20% на куртку за 2000 ₽: 2000 × 20 / 100 = 400 ₽ скидка. Заплатишь 1600 ₽.',
+    q:'Сколько будет 10% от 500?', opts:['5','50','100'], a:1},
+  {age:'teen', icon:'📉', title:'Инфляция', body:[
+    'Инфляция — это когда со временем цены растут, а деньги «дешевеют». На ту же сумму через год можно купить меньше.',
+    'Поэтому деньги, которые просто лежат, постепенно теряют ценность. Чтобы защититься от инфляции, деньги вкладывают — например, на банковский вклад под процент.'],
+    example:'Год назад мороженое стоило 50 ₽, теперь 60 ₽. Те же 50 ₽ уже не хватит — это инфляция.',
+    q:'Что делает инфляция с деньгами?', opts:['Делает их дороже','Снижает их ценность','Ничего'], a:1},
+  {age:'teen', icon:'🏦', title:'Вклад и инвестиции', body:[
+    'Вклад (депозит) — деньги в банке под процент. Банк платит тебе за то, что хранит твои деньги. Это надёжно, но процент небольшой.',
+    'Инвестиции — вложения, которые могут вырасти сильнее (акции, бизнес), но и риск потерять выше. Главное правило: чем выше доходность, тем выше риск.'],
+    example:'Положил 10 000 ₽ на вклад под 10% годовых — через год получишь 11 000 ₽.',
+    q:'Что надёжнее, но с меньшим доходом?', opts:['Вклад в банке','Рискованные акции'], a:0},
+  {age:'teen', icon:'💳', title:'Как устроена банковская карта', body:[
+    'Карта — это ключ к деньгам на счёте в банке. Дебетовая карта тратит твои деньги, кредитная — деньги банка в долг (которые надо вернуть с процентами).',
+    'PIN-код и данные карты нельзя никому говорить. Это как ключ от дома — попадёт к мошеннику, и деньги пропадут.'],
+    example:'Расплатился картой в магазине — деньги списались со счёта. Никакой наличности не нужно.',
+    q:'Можно ли говорить кому-то свой PIN-код?', opts:['Да, друзьям','Нет, никому','Только в магазине'], a:1},
+];
+
+/* МОДУЛЬ 6 — еженедельные задания (33 шт) */
+const WEEKLY_TASKS = [
+  // Тип А — Игра дома (11)
+  {type:'A', age:'baby', title:'Игра «Магазин»', text:'Устройте дома магазин: разложите игрушки как товары, придумайте им цены и поиграйте в покупки с монетками.'},
+  {type:'A', age:'baby', title:'Сортировка монет', text:'Высыпьте копилку и вместе разложите монетки по кучкам — где какие. Кто быстрее?'},
+  {type:'A', age:'baby', title:'Касса и продавец', text:'Сегодня ты — продавец! Продай маме три «товара» и посчитай, сколько монеток получил.'},
+  {type:'A', age:'kid', title:'Аукцион желаний', text:'У кого больше монет в конце недели — тот выигрывает. Устройте аукцион: разыграйте маленькие призы за накопленные монеты.'},
+  {type:'A', age:'kid', title:'Настольная «Монополия»', text:'Сыграйте всей семьёй в любую экономическую настольную игру про деньги и покупки.'},
+  {type:'A', age:'kid', title:'Банк семьи', text:'Назначь одного члена семьи «банкиром». Он ведёт учёт, кто сколько отложил за неделю.'},
+  {type:'A', age:'teen', title:'Семейный совет', text:'Соберите семейный совет и вместе спланируйте бюджет на ближайший праздник: сколько на что потратить.'},
+  {type:'A', age:'teen', title:'Биржа дел', text:'Устройте «биржу»: выставьте домашние дела с ценой в монетах и торгуйтесь, кто за сколько берётся.'},
+  {type:'A', age:'teen', title:'Инвест-игра', text:'Представьте, что у каждого есть 1000 виртуальных рублей. Решите, во что вложить, и через неделю обсудите, кто бы «заработал».'},
+  {type:'A', age:'any', title:'Магазин наоборот', text:'Сыграйте в магазин, где надо НЕ потратить лишнего: дан список и ограниченная сумма монет.'},
+  {type:'A', age:'any', title:'Угадай цену', text:'Загадывайте цены реальных продуктов из холодильника — кто угадает ближе, тот победил.'},
+  // Тип Б — Практическое задание (11)
+  {type:'B', age:'kid', title:'Найди выгодный вариант', text:'Сходи с родителем в магазин и найди самый выгодный вариант одного и того же товара (например, сок).'},
+  {type:'B', age:'kid', title:'Сравни цены', text:'Сравни цену одного товара в двух разных магазинах. Где дешевле и на сколько?'},
+  {type:'B', age:'kid', title:'Список покупок', text:'Составь список покупок и помоги уложиться в заданную сумму денег.'},
+  {type:'B', age:'kid', title:'Сосчитай сдачу', text:'В магазине посчитай в уме, какую сдачу должны дать, и проверь на кассе.'},
+  {type:'B', age:'teen', title:'Заработай 100 рублей', text:'Придумай и осуществи способ честно заработать 100 рублей за неделю.'},
+  {type:'B', age:'teen', title:'Цена за грамм', text:'В магазине сравни два товара по цене за 100 грамм, а не за упаковку. Что реально выгоднее?'},
+  {type:'B', age:'teen', title:'Недельный бюджет', text:'Спланируй свой бюджет на неделю заранее, а в конце сравни план с тем, что вышло на самом деле.'},
+  {type:'B', age:'teen', title:'Охота за скидками', text:'Найди три реальные акции в магазинах и определи, какая из них настоящая выгода, а какая — уловка.'},
+  {type:'B', age:'baby', title:'Найди монетку', text:'Найди дома 5 монеток и сложи их в копилку. Посчитай, сколько всего получилось.'},
+  {type:'B', age:'any', title:'Чек-детектив', text:'Возьми чек из магазина и найди в нём самый дорогой и самый дешёвый товар.'},
+  {type:'B', age:'any', title:'Копилка-марафон', text:'Откладывай каждый день недели хотя бы одну монетку. В воскресенье посчитай результат.'},
+  // Тип В — Обсуждение с родителем (11)
+  {type:'C', age:'any', title:'1000 рублей', text:'Расскажи родителю, на что бы ты потратил 1000 рублей и почему именно на это.'},
+  {type:'C', age:'teen', title:'3 способа сэкономить', text:'Придумай и обсуди с родителем 3 способа сэкономить семейные деньги.'},
+  {type:'C', age:'kid', title:'Сколько стоит ужин', text:'Как ты думаешь, сколько стоит приготовить наш сегодняшний ужин? Обсудите и прикиньте вместе.'},
+  {type:'C', age:'teen', title:'Работа мечты', text:'Обсуди с родителем, кем бы ты хотел работать и сколько примерно зарабатывают в этой профессии.'},
+  {type:'C', age:'kid', title:'Хочу и нужно', text:'Назови родителю три вещи, которые тебе «нужны», и три, которые ты просто «хочешь».'},
+  {type:'C', age:'baby', title:'Что покупаем чаще', text:'Расскажи маме или папе, какие продукты ваша семья покупает чаще всего.'},
+  {type:'C', age:'teen', title:'Если бы я был банкиром', text:'Обсуди: что бы ты изменил, если бы управлял банком? Как бы помогал людям копить?'},
+  {type:'C', age:'kid', title:'Подарок на 500', text:'Придумай, какой подарок близкому можно сделать, имея всего 500 рублей.'},
+  {type:'C', age:'teen', title:'Цена мечты', text:'Расскажи о своей большой мечте и посчитай вместе с родителем, сколько она стоит и за сколько можно накопить.'},
+  {type:'C', age:'any', title:'Богатый и счастливый', text:'Обсуди с родителем: всегда ли богатый человек счастлив? Что важнее денег?'},
+  {type:'C', age:'baby', title:'Кто работает', text:'Расскажи, кем работают мама и папа и что они делают на работе.'},
+];
+
+const GOAL_EMOJIS = ['🚲','🎮','📱','🎧','⚽','🛹','🧸','🪀','📚','🎨','🎸','🦄','🚗','🤖','👟','⌚','🎁','🍰','🐶','🏀'];
+
+const TASK_TYPE = {A:{name:'Игра дома',icon:'🎲'},B:{name:'Практика',icon:'🛒'},C:{name:'Обсуждение',icon:'💬'}};
+
+/* ============================================================
+   ХРАНИЛИЩЕ И СОСТОЯНИЕ
+   ============================================================ */
+const LS_KEY = 'finkids_v1';
+let state = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {profiles:[], activeId:null, parentPin:null, mode:'child'};
+}
+function save(){ try{localStorage.setItem(LS_KEY, JSON.stringify(state));}catch(e){alert('Не удалось сохранить данные');} }
+
+function activeProfile(){ return state.profiles.find(p=>p.id===state.activeId) || null; }
+
+function newProfile(name, ageKey, currency){
+  return {
+    id:'p'+Date.now()+Math.floor(Math.random()*999),
+    name, age:ageKey, currency,
+    balance:0, totalEarned:0,
+    allowance:{amount:0, period:'week', day:5, envelopes:{spend:50,save:30,give:20}, lastPaid:null, enabled:false},
+    quests:[],            // {id, templateId?, title, desc, reward, cat, diff, due, status:'available'|'taken'|'pending'|'done'|'rejected', comment}
+    transactions:[],      // {id, type:'income'|'expense'|'allowance'|'quest'|'manual', amount, cat, note, date, feeling}
+    goals:[],             // {id, title, amount, saved, emoji, due, priority}
+    lessonsDone:[],       // lesson indexes (age-prefixed key)
+    seenTasks:[],         // weekly task indexes
+    currentTask:null,
+    budget:null,          // teen: {week, planned, items:[]}
+    createdAt:Date.now(),
+  };
+}
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+const cur = ()=>{const p=activeProfile();return p?p.currency:'₽';};
+const money = (n)=> (Math.round(n*100)/100).toLocaleString('ru-RU') + ' ' + cur();
+const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const todayISO = ()=> new Date().toISOString().slice(0,10);
+function fmtDate(iso){ if(!iso) return '';const d=new Date(iso);return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function confetti(){
+  const colors=['#f5b800','#2bb673','#ff8a3d','#4a90e2','#9b5de5','#e05599'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div');c.className='confetti';
+    c.style.left=Math.random()*100+'vw';c.style.top='-20px';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(1.5+Math.random()*1.5)+'s';
+    c.style.animationDelay=(Math.random()*0.4)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),3200);
+  }
+}
+
+/* модалка */
+function openModal(html){
+  const root=$('#modal-root');
+  root.innerHTML=`<div class="modal open" onclick="if(event.target===this)closeModal()"><div class="sheet">${html}</div></div>`;
+}
+function closeModal(){ $('#modal-root').innerHTML=''; }
+
+/* ============================================================
+   РОУТИНГ ВИДОВ
+   ============================================================ */
+let currentView = 'home';
+const CHILD_NAV = [
+  {key:'home', icon:'🏠', label:'Главная'},
+  {key:'quests', icon:'⚔️', label:'Квесты'},
+  {key:'goals', icon:'🐷', label:'Копилка'},
+  {key:'spend', icon:'📒', label:'Траты'},
+  {key:'learn', icon:'🎓', label:'Уроки'},
+];
+
+function go(view){ currentView=view; render(); window.scrollTo(0,0); }
+
+/* ============================================================
+   ГЛАВНЫЙ РЕНДЕР
+   ============================================================ */
+function render(){
+  const app=$('#app');
+  if(state.profiles.length===0){ app.innerHTML=renderOnboarding(); return; }
+  if(state.mode==='parent'){ app.innerHTML=renderParentShell(); return; }
+  app.innerHTML=renderChildShell();
+  // запустить отложенные анимации прогресс-баров
+  requestAnimationFrame(()=>{ $$('.bar > span[data-w]').forEach(s=>s.style.width=s.dataset.w+'%'); animatePiggies(); drawCharts(); });
+}
+
+/* ===== ONBOARDING ===== */
+let obAge=null;
+function renderOnboarding(){
+  return `<div class="ob">
+    <div class="logo">🐷💰</div>
+    <h1>Финансовая грамотность<br>для детей</h1>
+    <p class="muted">Давай создадим профиль ребёнка. Сначала выбери возраст — от этого зависит весь интерфейс.</p>
+    <div class="agegrid">
+      ${Object.values(AGE).map(a=>`
+        <button class="agecard ${obAge===a.key?'sel':''}" onclick="obAge='${a.key}';render()">
+          <div class="e">${a.emoji}</div><div class="n">${a.name}</div><div class="a">${a.age}</div>
+        </button>`).join('')}
+    </div>
+    ${obAge?`
+    <div class="card" style="margin-top:22px;text-align:left">
+      <div class="field"><label>Имя ребёнка</label><input id="ob-name" placeholder="Например, Маша" maxlength="20"></div>
+      <div class="field"><label>Валюта карманных денег</label>
+        <select id="ob-cur">${Object.keys(CURRENCIES).map(c=>`<option>${c}</option>`).join('')}</select>
+      </div>
+      <button class="btn full green" onclick="finishOnboarding()">Создать профиль ✨</button>
+    </div>`:''}
+    <p class="muted small" style="margin-top:24px">Всё хранится только на этом устройстве. Никаких регистраций.</p>
+  </div>`;
+}
+function finishOnboarding(){
+  const name=($('#ob-name').value||'').trim();
+  if(!name){toast('Введите имя ребёнка');return;}
+  const c=$('#ob-cur').value;
+  const p=newProfile(name, obAge, c);
+  state.profiles.push(p); state.activeId=p.id; obAge=null;
+  save(); confetti(); toast('Профиль создан! 🎉'); currentView='home'; render();
+}
+
+/* ===== CHILD SHELL ===== */
+function renderChildShell(){
+  const p=activeProfile();
+  const a=AGE[p.age];
+  const pendingQuests = p.quests.filter(q=>q.status==='pending').length;
+  const nav = CHILD_NAV.map(n=>{
+    const badge = n.key==='quests'&&pendingQuests? `<span class="badge">${pendingQuests}</span>`:'';
+    return {...n, badge};
+  });
+  const side = `<div class="sidebar">
+    <div class="brand">🐷 ФинКидс</div>
+    ${nav.map(n=>`<button class="nav-btn ${currentView===n.key?'active':''}" onclick="go('${n.key}')"><span class="ic">${n.icon}</span>${n.label}${n.badge}</button>`).join('')}
+    <button class="nav-btn" onclick="go('games')"><span class="ic">🎮</span>Задания</button>
+    <div style="flex:1"></div>
+    <button class="nav-btn" onclick="parentEntry()"><span class="ic">👨‍👩‍👧</span>Родителям</button>
+  </div>`;
+
+  const bottom = `<nav class="bottomnav">
+    ${nav.map(n=>`<button class="${currentView===n.key?'active':''}" onclick="go('${n.key}')"><span class="ic">${n.icon}</span>${n.label}${n.badge}</button>`).join('')}
+  </nav>`;
+
+  let body='';
+  switch(currentView){
+    case 'home': body=viewHome(p); break;
+    case 'quests': body=viewQuests(p); break;
+    case 'goals': body=viewGoals(p); break;
+    case 'spend': body=viewSpend(p); break;
+    case 'learn': body=viewLearn(p); break;
+    case 'games': body=viewGames(p); break;
+    default: body=viewHome(p);
+  }
+
+  return `<div class="shell">${side}<div class="main">
+    <div class="topbar">
+      <div class="who"><span class="av">${a.emoji}</span><div><div>${esc(p.name)}</div><div class="muted small" style="font-weight:500">${a.name}</div></div></div>
+      <div class="bigcoin" style="font-size:22px">${money(p.balance)}</div>
+    </div>
+    <div class="container">${body}</div>
+  </div>${bottom}</div>`;
+}
+
+/* ============================================================
+   МОДУЛЬ 1 + ГЛАВНАЯ
+   ============================================================ */
+function nextAllowanceDate(p){
+  const al=p.allowance;
+  if(!al.enabled||!al.amount) return null;
+  const last = al.lastPaid? new Date(al.lastPaid): new Date(p.createdAt);
+  const days = al.period==='week'?7: al.period==='biweek'?14:30;
+  // find next occurrence of weekday >= last + cycle (simplified: last + days)
+  let next = new Date(last); next.setDate(next.getDate()+days);
+  return next;
+}
+function checkAllowanceDue(p){
+  const next=nextAllowanceDate(p);
+  if(!next) return false;
+  return new Date() >= next;
+}
+function payAllowance(p){
+  const al=p.allowance;
+  const next=nextAllowanceDate(p) || new Date();
+  p.balance += al.amount;
+  p.totalEarned += al.amount;
+  al.lastPaid = todayISO();
+  p.transactions.unshift({id:uid(),type:'allowance',amount:al.amount,cat:'allowance',note:'Карманные деньги',date:todayISO()});
+  // распределение по конвертам — авто-аллокация в цель «Коплю» не делаем, просто показываем
+  save(); confetti(); toast('Карманные деньги начислены! 🎉'); render();
+}
+
+function viewHome(p){
+  const a=AGE[p.age];
+  const due = checkAllowanceDue(p);
+  const next = nextAllowanceDate(p);
+  const al=p.allowance;
+  const periodName = {week:'каждую неделю',biweek:'раз в 2 недели',month:'раз в месяц'}[al.period];
+  const spent = p.transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+
+  // приветствие по возрасту
+  let hello;
+  if(p.age==='baby') hello=`<div style="font-size:30px">Привет, ${esc(p.name)}! 👋</div>`;
+  else if(p.age==='kid') hello=`<h2 style="font-size:22px">Привет, ${esc(p.name)}! ⭐</h2>`;
+  else hello=`<h2 style="font-size:20px">Здравствуй, ${esc(p.name)}</h2>`;
+
+  let out = `<div class="card" style="background:linear-gradient(135deg,var(--gold-light),var(--card))">
+    ${hello}
+    <div class="bigcoin" style="margin:10px 0 4px">${money(p.balance)}</div>
+    <div class="muted small">Твой баланс${p.age!=='baby'?` · накоплено за всё время: <span class="coin">${money(p.totalEarned)}</span>`:''}</div>
+  </div>`;
+
+  // напоминание о карманных деньгах
+  if(due){
+    out+=`<div class="card" style="border:2px solid var(--gold);text-align:center">
+      <div style="font-size:40px">🎉</div>
+      <h2>Сегодня день карманных денег!</h2>
+      <p class="muted">Тебе причитается <span class="coin">${money(al.amount)}</span></p>
+      <button class="btn full green" style="margin-top:10px" onclick="payAllowanceActive()">Получить деньги 💰</button>
+    </div>`;
+  }
+
+  // карманные деньги инфо
+  if(al.enabled && al.amount){
+    out+=`<div class="card">
+      <h3>💵 Карманные деньги</h3>
+      <div class="row between"><span class="muted">Сумма</span><b>${money(al.amount)} ${periodName}</b></div>
+      ${next&&!due?`<div class="row between" style="margin-top:6px"><span class="muted">Следующее пополнение</span><b>${next.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'long'})}</b></div>`:''}
+      ${p.age!=='baby'?`<hr><div class="small muted" style="margin-bottom:8px">Правило трёх конвертов:</div>
+      <div class="row wrap" style="gap:8px">
+        <span class="pill orange">🛍️ Трачу ${al.envelopes.spend}%</span>
+        <span class="pill green">🏦 Коплю ${al.envelopes.save}%</span>
+        <span class="pill purple">🎁 Дарю ${al.envelopes.give}%</span>
+      </div>
+      <div class="small muted" style="margin-top:8px">Из ${money(al.amount)}: трачу ${money(al.amount*al.envelopes.spend/100)}, коплю ${money(al.amount*al.envelopes.save/100)}, дарю ${money(al.amount*al.envelopes.give/100)}</div>`:''}
+    </div>`;
+  } else {
+    out+=`<div class="card" style="text-align:center">
+      <div class="muted">Карманные деньги пока не настроены.</div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="parentEntry()">Родители могут настроить →</button>
+    </div>`;
+  }
+
+  // быстрая статистика
+  if(p.age!=='baby'){
+    out+=`<div class="grid grid3">
+      <div class="stat"><div class="v coin">${money(p.balance).replace(/\s?[₽$€]/,'')}</div><div class="l">Баланс</div></div>
+      <div class="stat"><div class="v" style="color:var(--green)">${money(p.totalEarned).replace(/\s?[₽$€]/,'')}</div><div class="l">Заработано</div></div>
+      <div class="stat"><div class="v" style="color:var(--orange)">${money(spent).replace(/\s?[₽$€]/,'')}</div><div class="l">Потрачено</div></div>
+    </div>`;
+  }
+
+  // активная цель кратко
+  const topGoal = p.goals.slice().sort((a,b)=>(a.priority||9)-(b.priority||9))[0];
+  if(topGoal){
+    const pct=Math.min(100,Math.round(topGoal.saved/topGoal.amount*100));
+    out+=`<div class="card" onclick="go('goals')" style="cursor:pointer">
+      <div class="row between"><h3>${topGoal.emoji} ${esc(topGoal.title)}</h3><span class="coin">${pct}%</span></div>
+      <div class="bar"><span data-w="${pct}"></span></div>
+      <div class="small muted" style="margin-top:6px">Накоплено ${money(topGoal.saved)} из ${money(topGoal.amount)}</div>
+    </div>`;
+  }
+
+  // задание недели
+  out+=`<div class="card" style="cursor:pointer" onclick="go('games')">
+    <div class="row between"><h3>🎲 Задание недели</h3><span class="link">открыть →</span></div>
+    <div class="muted small">${p.currentTask!=null? esc(WEEKLY_TASKS[p.currentTask].title):'Получи весёлое задание для всей семьи!'}</div>
+  </div>`;
+
+  return out;
+}
+function payAllowanceActive(){ payAllowance(activeProfile()); }
+
+/* ============================================================
+   МОДУЛЬ 2 — КВЕСТЫ (детская сторона)
+   ============================================================ */
+function viewQuests(p){
+  const mine = p.quests.filter(q=>['taken','pending'].includes(q.status));
+  const avail = p.quests.filter(q=>q.status==='available');
+  const done = p.quests.filter(q=>q.status==='done');
+  const rejected = p.quests.filter(q=>q.status==='rejected');
+
+  let out='';
+  if(p.quests.length===0){
+    out+=`<div class="emptystate card"><span class="em">⚔️</span>
+      <h2>Пока нет квестов</h2>
+      <p>Попроси родителей добавить задания, или загрузи готовые шаблоны.</p>
+      <button class="btn" style="margin-top:14px" onclick="parentEntry()">Родителям →</button>
+    </div>`;
+    return out;
+  }
+
+  if(mine.length){
+    out+=`<div class="section-title">Мои квесты</div>`;
+    out+=mine.map(q=>questCard(q,'mine')).join('');
+  }
+  if(rejected.length){
+    out+=`<div class="section-title">Нужно переделать</div>`;
+    out+=rejected.map(q=>questCard(q,'rejected')).join('');
+  }
+  if(avail.length){
+    out+=`<div class="section-title">Доступные квесты</div>`;
+    out+=avail.map(q=>questCard(q,'avail')).join('');
+  }
+  if(done.length){
+    out+=`<div class="section-title">Выполнено ✅</div>`;
+    out+=done.map(q=>questCard(q,'done')).join('');
+  }
+  return out;
+}
+function questCard(q,mode){
+  const c=QUEST_CATS[q.cat]||{name:'',icon:'⭐'};
+  const d=DIFF[q.diff]||DIFF.easy;
+  let action='';
+  if(mode==='avail') action=`<button class="btn sm" onclick="takeQuest('${q.id}')">Взять квест</button>`;
+  else if(mode==='mine'){
+    if(q.status==='taken') action=`<button class="btn sm green" onclick="completeQuest('${q.id}')">Отметить выполненным</button>`;
+    else action=`<span class="pill orange">⏳ Ждёт одобрения</span>`;
+  }
+  else if(mode==='rejected') action=`<div><span class="pill red">Отклонено</span> <button class="btn sm" onclick="takeQuest('${q.id}')">Переделать</button></div>`;
+  else if(mode==='done') action=`<span class="pill green">✅ Готово</span>`;
+
+  return `<div class="qcard">
+    <div class="qic">${q.icon||c.icon}</div>
+    <div class="qbody">
+      <div class="t">${esc(q.title)}</div>
+      <div class="d">${esc(q.desc||'')}</div>
+      <div class="row wrap" style="gap:6px;margin-bottom:8px">
+        <span class="pill">${c.icon} ${c.name}</span>
+        <span class="pill blue">${d.icon} ${d.name}</span>
+        ${q.due?`<span class="pill orange">📅 до ${fmtDate(q.due)}</span>`:''}
+        <span class="pill green">💰 ${money(q.reward)}</span>
+      </div>
+      ${q.comment&&q.status==='rejected'?`<div class="small" style="color:var(--red)">💬 ${esc(q.comment)}</div>`:''}
+      ${action}
+    </div>
+  </div>`;
+}
+function takeQuest(id){
+  const p=activeProfile();const q=p.quests.find(x=>x.id===id);
+  q.status='taken';q.comment=null;save();toast('Квест взят! Удачи 💪');render();
+}
+function completeQuest(id){
+  const p=activeProfile();const q=p.quests.find(x=>x.id===id);
+  q.status='pending';save();toast('Отправлено родителям на проверку ✋');render();
+}
+
+/* ============================================================
+   МОДУЛЬ 3 — КОПИЛКА И ЦЕЛИ
+   ============================================================ */
+function viewGoals(p){
+  let out='';
+  out+=`<button class="btn full" style="margin-bottom:16px" onclick="goalModal()">➕ Создать цель</button>`;
+  if(p.goals.length===0){
+    out+=`<div class="emptystate card"><span class="em">🐷</span><h2>Пока нет целей</h2><p>О чём ты мечтаешь? Создай цель и начни копить!</p></div>`;
+    return out;
+  }
+  const sorted=p.goals.slice().sort((a,b)=>(a.priority||9)-(b.priority||9));
+  out+=sorted.map(g=>goalCard(p,g)).join('');
+  return out;
+}
+function goalCard(p,g){
+  const pct=Math.min(100,Math.round(g.saved/g.amount*100));
+  const left=Math.max(0,g.amount-g.saved);
+  const done=g.saved>=g.amount;
+  // прогноз
+  let forecast='';
+  const al=p.allowance;
+  if(al.enabled&&al.amount&&left>0){
+    const perWeekFull = al.period==='week'?al.amount: al.period==='biweek'?al.amount/2: al.amount/4;
+    const half = perWeekFull*0.5;
+    if(half>0){
+      const weeks=Math.ceil(left/half);
+      forecast=`<div class="insight" style="margin-top:10px">💡 Если откладывать 50% карманных (${money(half)} в неделю) — купишь через <b>${weeks} нед.</b></div>`;
+    }
+  }
+  // визуализация по возрасту
+  let visual='';
+  if(p.age==='baby'){
+    const scale=(0.7+pct/100*0.6).toFixed(2);
+    visual=`<div class="piggy-wrap"><div class="piggy" data-scale="${scale}" style="transform:scale(0.7)">🐷</div>
+      <div class="muted small">${done?'Копилка полная! 🎉':'Свинка толстеет, когда копишь!'}</div></div>`;
+  } else if(p.age==='kid'){
+    visual=`<div class="glass"><div class="liquid" data-h="${pct}" style="height:0"></div></div>
+      <div style="text-align:center" class="coin">${pct}%</div>`;
+  } else {
+    visual=`<div class="bar" style="height:18px"><span data-w="${pct}"></span></div>
+      <div class="row between small" style="margin-top:6px"><span class="muted">${pct}% выполнено</span><span class="coin">осталось ${money(left)}</span></div>`;
+  }
+
+  return `<div class="card">
+    <div class="row between">
+      <h2>${g.emoji} ${esc(g.title)}</h2>
+      <div class="row" style="gap:6px">
+        <span class="pill">⭐ Приоритет ${g.priority||1}</span>
+      </div>
+    </div>
+    <div class="small muted" style="margin-bottom:10px">Цель: ${money(g.amount)} · Накоплено: <span class="coin">${money(g.saved)}</span>${g.due?` · к ${fmtDate(g.due)}`:''}</div>
+    ${visual}
+    ${forecast}
+    ${done?`<div class="card" style="background:var(--green-light);text-align:center;margin:12px 0 0">🎉 Цель достигнута! Можно покупать!</div>`:''}
+    <div class="row wrap" style="gap:8px;margin-top:12px">
+      <button class="btn sm green" onclick="addToGoal('${g.id}')">💰 Отложить</button>
+      <button class="btn sm ghost" onclick="goalModal('${g.id}')">✏️ Изменить</button>
+      <button class="btn sm ghost" onclick="delGoal('${g.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+function goalModal(id){
+  const p=activeProfile();
+  const g=id?p.goals.find(x=>x.id===id):null;
+  openModal(`<h2>${g?'Изменить цель':'Новая цель'} <span class="x" onclick="closeModal()">×</span></h2>
+    <div class="field"><label>Что хочешь купить?</label><input id="g-title" value="${g?esc(g.title):''}" placeholder="Велосипед" maxlength="30"></div>
+    <div class="field"><label>Сколько стоит? (${cur()})</label><input id="g-amt" type="number" min="1" value="${g?g.amount:''}" placeholder="4000"></div>
+    <div class="field"><label>Выбери картинку</label>
+      <div id="g-emoji-grid" style="display:flex;flex-wrap:wrap;gap:6px">
+        ${GOAL_EMOJIS.map(e=>`<button type="button" class="chip ${g&&g.emoji===e?'sel':(!g&&e===GOAL_EMOJIS[0]?'sel':'')}" style="font-size:20px" onclick="pickEmoji(this)">${e}</button>`).join('')}
+      </div></div>
+    <div class="field"><label>Хочу купить к (необязательно)</label><input id="g-due" type="date"${g&&g.due?` value="${g.due}"`:''}></div>
+    <div class="field"><label>Приоритет (1 — самая важная)</label><input id="g-prio" type="number" min="1" max="9" value="${g?g.priority||1:1}"></div>
+    <button class="btn full green" onclick="saveGoal('${id||''}')">Сохранить</button>`);
+}
+function pickEmoji(btn){ $$('#g-emoji-grid .chip').forEach(c=>c.classList.remove('sel')); btn.classList.add('sel'); }
+function saveGoal(id){
+  const p=activeProfile();
+  const title=($('#g-title').value||'').trim();
+  const amount=parseFloat($('#g-amt').value);
+  const sel=$('#g-emoji-grid .chip.sel');
+  const emoji=sel?sel.textContent:'🎯';
+  const due=$('#g-due').value||null;
+  const prio=parseInt($('#g-prio').value)||1;
+  if(!title||!amount||amount<=0){toast('Заполни название и сумму');return;}
+  if(id){
+    const g=p.goals.find(x=>x.id===id);
+    Object.assign(g,{title,amount,emoji,due,priority:prio});
+  } else {
+    p.goals.push({id:uid(),title,amount,saved:0,emoji,due,priority:prio});
+  }
+  save();closeModal();toast('Цель сохранена 🎯');render();
+}
+function delGoal(id){
+  if(!confirm('Удалить цель? Накопленное вернётся на баланс.'))return;
+  const p=activeProfile();const g=p.goals.find(x=>x.id===id);
+  if(g&&g.saved>0){p.balance+=g.saved;}
+  p.goals=p.goals.filter(x=>x.id!==id);save();toast('Цель удалена');render();
+}
+function addToGoal(id){
+  const p=activeProfile();const g=p.goals.find(x=>x.id===id);
+  openModal(`<h2>Отложить на «${esc(g.title)}» <span class="x" onclick="closeModal()">×</span></h2>
+    <p class="muted small" style="margin-bottom:10px">На балансе: <span class="coin">${money(p.balance)}</span></p>
+    <div class="field"><label>Сколько отложить? (${cur()})</label><input id="ag-amt" type="number" min="1" max="${p.balance}" placeholder="100"></div>
+    <button class="btn full green" onclick="doAddToGoal('${id}')">Отложить в копилку</button>`);
+}
+function doAddToGoal(id){
+  const p=activeProfile();const g=p.goals.find(x=>x.id===id);
+  const amt=parseFloat($('#ag-amt').value);
+  if(!amt||amt<=0){toast('Введите сумму');return;}
+  if(amt>p.balance){toast('Недостаточно на балансе');return;}
+  p.balance-=amt; g.saved+=amt;
+  save();closeModal();
+  if(g.saved>=g.amount){confetti();toast('🎉 Цель достигнута!');}else{toast('Отложено в копилку 🐷');}
+  render();
+}
+function animatePiggies(){
+  requestAnimationFrame(()=>{
+    $$('.piggy[data-scale]').forEach(el=>{el.style.transform='scale('+el.dataset.scale+')';});
+    $$('.glass .liquid[data-h]').forEach(el=>{el.style.height=el.dataset.h+'%';});
+  });
+}
+
+/* ============================================================
+   МОДУЛЬ 4 — ЖУРНАЛ РАСХОДОВ
+   ============================================================ */
+let spendPeriod='week';
+function viewSpend(p){
+  let out='';
+  out+=`<button class="btn full" style="margin-bottom:14px" onclick="spendModal()">➕ Записать трату</button>`;
+
+  const now=new Date();
+  const cutoff=new Date(now); cutoff.setDate(now.getDate()-(spendPeriod==='week'?7:30));
+  const exp=p.transactions.filter(t=>t.type==='expense');
+  const inPeriod=exp.filter(t=>new Date(t.date)>=cutoff);
+  const total=inPeriod.reduce((s,t)=>s+t.amount,0);
+
+  out+=`<div class="seg" style="margin-bottom:14px">
+    <button class="${spendPeriod==='week'?'active':''}" onclick="spendPeriod='week';render()">Неделя</button>
+    <button class="${spendPeriod==='month'?'active':''}" onclick="spendPeriod='month';render()">Месяц</button>
+  </div>`;
+
+  // диаграмма
+  const byCat={};
+  inPeriod.forEach(t=>{byCat[t.cat]=(byCat[t.cat]||0)+t.amount;});
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+
+  out+=`<div class="card">
+    <div class="row between"><h2>Расходы за ${spendPeriod==='week'?'неделю':'месяц'}</h2><span class="bigcoin" style="font-size:20px;color:var(--orange)">${money(total)}</span></div>`;
+  if(cats.length){
+    out+=`<div class="row" style="gap:16px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <canvas id="pie" width="180" height="180" style="max-width:180px"></canvas>
+      <div style="flex:1;min-width:160px">${cats.map(([k,v])=>{
+        const c=EXPENSE_CATS.find(x=>x.key===k)||EXPENSE_CATS[7];
+        const pct=Math.round(v/total*100);
+        return `<div class="row between" style="margin-bottom:6px"><span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:${c.color};margin-right:6px"></span>${c.icon} ${c.name}</span><b>${pct}%</b></div>`;
+      }).join('')}</div></div>`;
+    // инсайт
+    const top=cats[0];const tc=EXPENSE_CATS.find(x=>x.key===top[0]);
+    out+=`<div class="insight" style="margin-top:12px">📊 Больше всего ты потратил на «${tc.name}» — ${money(top[1])}</div>`;
+    // window data
+    window.__pieData=cats.map(([k,v])=>({color:(EXPENSE_CATS.find(x=>x.key===k)||EXPENSE_CATS[7]).color,v}));
+  } else {
+    out+=`<div class="emptystate"><span class="em">📒</span><p>Пока нет трат за этот период.</p></div>`;
+    window.__pieData=null;
+  }
+  out+=`</div>`;
+
+  // бюджет для подростков
+  if(p.age==='teen'){
+    out+=teenBudget(p,total);
+  }
+
+  // история
+  if(exp.length){
+    out+=`<div class="card"><div class="row between"><h2>История трат</h2>${p.age==='teen'?`<button class="btn sm ghost" onclick="exportTxt()">📄 Экспорт .txt</button>`:''}</div>`;
+    out+=exp.slice(0,40).map(t=>{
+      const c=EXPENSE_CATS.find(x=>x.key===t.cat)||EXPENSE_CATS[7];
+      const fe={good:'😍',neutral:'😐',bad:'😞'}[t.feeling]||'';
+      return `<div class="li">
+        <div class="lic">${c.icon}</div>
+        <div class="lt"><div class="n">${c.name} ${fe}</div><div class="s">${fmtDate(t.date)}${t.note?' · '+esc(t.note):''}</div></div>
+        <div class="amt" style="color:var(--orange)">−${money(t.amount)}</div>
+        <button class="x" style="font-size:20px;margin-left:8px" onclick="delTx('${t.id}')">×</button>
+      </div>`;
+    }).join('');
+    out+=`</div>`;
+  }
+  return out;
+}
+function teenBudget(p,spentThisPeriod){
+  const b=p.budget;
+  if(!b||b.week!==weekKey()){
+    return `<div class="card">
+      <h2>📅 Бюджет на неделю</h2>
+      <p class="muted small">Спланируй, сколько хочешь потратить на этой неделе, а в конце сравни с фактом.</p>
+      <div class="field" style="margin-top:10px"><label>План расходов на неделю (${cur()})</label><input id="bud-plan" type="number" min="0" placeholder="500"></div>
+      <button class="btn green" onclick="setBudget()">Запланировать</button>
+    </div>`;
+  }
+  const diff=b.planned-spentThisPeriod;
+  const pct=b.planned?Math.min(100,Math.round(spentThisPeriod/b.planned*100)):0;
+  return `<div class="card">
+    <div class="row between"><h2>📅 Бюджет недели</h2><button class="btn sm ghost" onclick="p_resetBudget()">Сбросить</button></div>
+    <div class="row between small" style="margin:8px 0"><span>План: <b>${money(b.planned)}</b></span><span>Факт: <b style="color:var(--orange)">${money(spentThisPeriod)}</b></span></div>
+    <div class="bar"><span data-w="${pct}" style="background:${spentThisPeriod>b.planned?'var(--red)':'linear-gradient(90deg,var(--green),#7be0a8)'}"></span></div>
+    <div class="insight" style="margin-top:12px">${diff>=0?`👍 Ты в рамках бюджета. Осталось <b>${money(diff)}</b>`:`⚠️ Превышение бюджета на <b>${money(-diff)}</b>`}</div>
+  </div>`;
+}
+function weekKey(){const d=new Date();const onejan=new Date(d.getFullYear(),0,1);const w=Math.ceil(((d-onejan)/86400000+onejan.getDay()+1)/7);return d.getFullYear()+'-W'+w;}
+function setBudget(){
+  const p=activeProfile();const plan=parseFloat($('#bud-plan').value);
+  if(!plan||plan<0){toast('Введите сумму');return;}
+  p.budget={week:weekKey(),planned:plan};save();toast('Бюджет запланирован 📅');render();
+}
+function p_resetBudget(){const p=activeProfile();p.budget=null;save();render();}
+
+function spendModal(){
+  const p=activeProfile();
+  openModal(`<h2>Записать трату <span class="x" onclick="closeModal()">×</span></h2>
+    <p class="muted small" style="margin-bottom:10px">На балансе: <span class="coin">${money(p.balance)}</span></p>
+    <div class="field"><label>Сколько потратил? (${cur()})</label><input id="sp-amt" type="number" min="1" placeholder="100"></div>
+    <div class="field"><label>На что?</label>
+      <div id="sp-cat" style="display:flex;flex-wrap:wrap;gap:6px">
+        ${EXPENSE_CATS.map((c,i)=>`<button type="button" class="chip ${i===0?'sel':''}" data-k="${c.key}" onclick="pickCat(this)">${c.icon} ${c.name}</button>`).join('')}
+      </div></div>
+    <div class="field"><label>Заметка (необязательно)</label><input id="sp-note" placeholder="Мороженое" maxlength="40"></div>
+    <div class="field"><label>Дата</label><input id="sp-date" type="date" value="${todayISO()}"></div>
+    ${p.age!=='baby'?`<div class="field"><label>Как тебе покупка?</label>
+      <div id="sp-feel" style="display:flex;gap:8px">
+        <button type="button" class="chip" data-f="good" onclick="pickFeel(this)">😍 Рад</button>
+        <button type="button" class="chip sel" data-f="neutral" onclick="pickFeel(this)">😐 Нейтрально</button>
+        <button type="button" class="chip" data-f="bad" onclick="pickFeel(this)">😞 Зря</button>
+      </div></div>`:''}
+    <button class="btn full red" onclick="saveSpend()">Записать трату</button>`);
+}
+function pickCat(b){$$('#sp-cat .chip').forEach(c=>c.classList.remove('sel'));b.classList.add('sel');}
+function pickFeel(b){$$('#sp-feel .chip').forEach(c=>c.classList.remove('sel'));b.classList.add('sel');}
+function saveSpend(){
+  const p=activeProfile();
+  const amt=parseFloat($('#sp-amt').value);
+  if(!amt||amt<=0){toast('Введите сумму');return;}
+  const cat=$('#sp-cat .chip.sel').dataset.k;
+  const note=($('#sp-note').value||'').trim();
+  const date=$('#sp-date').value||todayISO();
+  const feelEl=$('#sp-feel .chip.sel');
+  const feeling=feelEl?feelEl.dataset.f:null;
+  p.balance-=amt;
+  p.transactions.unshift({id:uid(),type:'expense',amount:amt,cat,note,date,feeling});
+  save();closeModal();toast('Трата записана 📒');render();
+}
+function delTx(id){
+  const p=activeProfile();const t=p.transactions.find(x=>x.id===id);
+  if(!t)return;
+  if(!confirm('Удалить эту запись?'))return;
+  if(t.type==='expense')p.balance+=t.amount;
+  p.transactions=p.transactions.filter(x=>x.id!==id);save();toast('Удалено');render();
+}
+function exportTxt(){
+  const p=activeProfile();
+  let txt=`Журнал расходов — ${p.name}\n`+'='.repeat(30)+'\n\n';
+  p.transactions.filter(t=>t.type==='expense').forEach(t=>{
+    const c=EXPENSE_CATS.find(x=>x.key===t.cat)||EXPENSE_CATS[7];
+    txt+=`${t.date}  ${c.name.padEnd(14)} ${String(t.amount).padStart(8)} ${p.currency}  ${t.note||''}\n`;
+  });
+  const total=p.transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  txt+=`\nИтого потрачено: ${total} ${p.currency}\nБаланс: ${p.balance} ${p.currency}\n`;
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`raskhody_${p.name}.txt`;a.click();
+  toast('Файл сохранён 📄');
+}
+
+function drawCharts(){
+  const cv=$('#pie'); if(!cv||!window.__pieData)return;
+  const ctx=cv.getContext('2d');const data=window.__pieData;
+  const total=data.reduce((s,d)=>s+d.v,0);if(!total)return;
+  const cx=90,cy=90,r=78;let start=-Math.PI/2;
+  ctx.clearRect(0,0,180,180);
+  data.forEach(d=>{
+    const ang=d.v/total*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();
+    ctx.fillStyle=d.color;ctx.fill();
+    ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--card');ctx.lineWidth=3;ctx.stroke();
+    start+=ang;
+  });
+  // дырка (donut)
+  ctx.beginPath();ctx.arc(cx,cy,40,0,Math.PI*2);
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--card');ctx.fill();
+}
+
+/* ============================================================
+   МОДУЛЬ 5 — УРОКИ
+   ============================================================ */
+function viewLearn(p){
+  const lessons=LESSONS.map((l,i)=>({...l,idx:i})).filter(l=>l.age===p.age);
+  const doneCount=lessons.filter(l=>p.lessonsDone.includes(l.idx)).length;
+  let out=`<div class="card" style="background:linear-gradient(135deg,var(--green-light),var(--card))">
+    <h2>🎓 Уроки для группы «${AGE[p.age].name}»</h2>
+    <div class="bar" style="margin-top:8px"><span data-w="${Math.round(doneCount/lessons.length*100)}"></span></div>
+    <div class="small muted" style="margin-top:6px">Пройдено ${doneCount} из ${lessons.length}</div>
+  </div>`;
+  out+=lessons.map(l=>{
+    const done=p.lessonsDone.includes(l.idx);
+    return `<div class="card" style="cursor:pointer" onclick="openLesson(${l.idx})">
+      <div class="row between">
+        <div class="row" style="gap:12px"><div class="qic" style="width:46px;height:46px;font-size:26px">${l.icon}</div>
+        <div><div style="font-weight:800">${esc(l.title)}</div><div class="small muted">${esc(l.body[0].slice(0,50))}…</div></div></div>
+        ${done?`<span class="done-badge">✓ Пройдено</span>`:`<span class="muted" style="font-size:22px">›</span>`}
+      </div>
+    </div>`;
+  }).join('');
+  return out;
+}
+function openLesson(idx){
+  const p=activeProfile();const l=LESSONS[idx];const done=p.lessonsDone.includes(idx);
+  openModal(`<h2>${l.icon} ${esc(l.title)} <span class="x" onclick="closeModal()">×</span></h2>
+    <div class="lesson-body">${l.body.map(par=>`<p>${esc(par)}</p>`).join('')}</div>
+    <div class="lesson-ex"><b>📍 Пример из жизни:</b><br>${esc(l.example)}</div>
+    <h3 style="margin-top:6px">❓ ${esc(l.q)}</h3>
+    <div id="quiz">${l.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${idx},${i},this)">${esc(o)}</button>`).join('')}</div>
+    ${done?`<div class="done-badge" style="margin-top:12px">✓ Урок уже пройден</div>`:''}`);
+}
+function answerQuiz(idx,choice,btn){
+  const l=LESSONS[idx];const p=activeProfile();
+  $$('#quiz .quiz-opt').forEach(b=>b.style.pointerEvents='none');
+  if(choice===l.a){
+    btn.classList.add('correct');
+    if(!p.lessonsDone.includes(idx)){p.lessonsDone.push(idx);save();confetti();}
+    setTimeout(()=>{toast('Верно! Урок пройден ✓');closeModal();render();},900);
+  } else {
+    btn.classList.add('wrong');
+    $$('#quiz .quiz-opt')[l.a].classList.add('correct');
+    setTimeout(()=>{$$('#quiz .quiz-opt').forEach(b=>{b.style.pointerEvents='';b.classList.remove('wrong','correct');});},1400);
+    toast('Попробуй ещё раз 🤔');
+  }
+}
+
+/* ============================================================
+   МОДУЛЬ 6 — ИГРЫ И ЗАДАНИЯ
+   ============================================================ */
+function viewGames(p){
+  const pool=WEEKLY_TASKS.map((t,i)=>({...t,idx:i})).filter(t=>t.age===p.age||t.age==='any');
+  const cur=p.currentTask!=null?WEEKLY_TASKS[p.currentTask]:null;
+  let out='';
+  if(cur){
+    const tt=TASK_TYPE[cur.type];
+    out+=`<div class="card" style="border:2px solid var(--gold)">
+      <span class="pill purple">${tt.icon} ${tt.name}</span>
+      <h2 style="margin-top:10px">${esc(cur.title)}</h2>
+      <p style="margin:8px 0">${esc(cur.text)}</p>
+      <button class="btn full green" onclick="markTaskDone()">✅ Выполнили!</button>
+    </div>`;
+  } else {
+    out+=`<div class="emptystate card"><span class="em">🎲</span><h2>Задание недели</h2><p>Получи весёлое практическое задание для всей семьи!</p></div>`;
+  }
+  out+=`<button class="btn full" onclick="nextTask()">🎲 ${cur?'Следующее задание':'Получить задание'}</button>`;
+
+  // прогресс
+  const seen=p.seenTasks.length;
+  out+=`<div class="card" style="margin-top:16px">
+    <div class="row between"><h3>Прогресс</h3><span class="coin">${seen} / ${pool.length}</span></div>
+    <div class="bar"><span data-w="${Math.round(seen/pool.length*100)}"></span></div>
+    <p class="small muted" style="margin-top:8px">Задания выбираются случайно и не повторяются. Три типа: 🎲 игра дома · 🛒 практика · 💬 обсуждение.</p>
+    ${seen>=pool.length?`<button class="btn sm ghost" style="margin-top:10px" onclick="resetTasks()">Начать заново</button>`:''}
+  </div>`;
+  return out;
+}
+function nextTask(){
+  const p=activeProfile();
+  const pool=WEEKLY_TASKS.map((t,i)=>i).filter(i=>(WEEKLY_TASKS[i].age===p.age||WEEKLY_TASKS[i].age==='any'));
+  const unseen=pool.filter(i=>!p.seenTasks.includes(i));
+  if(unseen.length===0){toast('Ты прошёл все задания! 🏆 Начинаем заново');p.seenTasks=[];}
+  const fresh=pool.filter(i=>!p.seenTasks.includes(i));
+  const pick=fresh[Math.floor(Math.random()*fresh.length)];
+  p.currentTask=pick;p.seenTasks.push(pick);save();render();
+}
+function markTaskDone(){const p=activeProfile();p.currentTask=null;save();confetti();toast('Молодцы! 🎉');render();}
+function resetTasks(){const p=activeProfile();p.seenTasks=[];p.currentTask=null;save();toast('Сброшено');render();}
+
+/* ============================================================
+   МОДУЛЬ 7 — ПАНЕЛЬ РОДИТЕЛЯ
+   ============================================================ */
+let pinBuffer='';let pinMode='check';// 'check'|'set'|'confirm'
+let pinFirst='';
+function parentEntry(){
+  if(!state.parentPin){ pinMode='set'; }
+  else { pinMode='check'; }
+  pinBuffer='';pinFirst='';
+  $('#app').innerHTML=renderPin();
+}
+function renderPin(){
+  const titles={set:'Придумайте PIN-код',confirm:'Повторите PIN-код',check:'Введите PIN-код'};
+  const subs={set:'4 цифры для входа в родительскую панель',confirm:'Ещё раз, чтобы запомнить',check:'Родительская панель защищена'};
+  return `<div class="ob" style="padding-top:50px">
+    <div style="font-size:54px">🔒</div>
+    <h1 style="font-size:22px">${titles[pinMode]}</h1>
+    <p class="muted">${subs[pinMode]}</p>
+    <div class="pinpad">
+      <div class="pin-display">${[0,1,2,3].map(i=>`<div class="pin-dot ${i<pinBuffer.length?'on':''}"></div>`).join('')}</div>
+      <div class="pin-keys">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="pinPress('${n}')">${n}</button>`).join('')}
+        <button onclick="pinCancel()" style="font-size:14px;font-weight:700">Отмена</button>
+        <button onclick="pinPress('0')">0</button>
+        <button onclick="pinDel()">⌫</button>
+      </div>
+    </div>
+  </div>`;
+}
+function pinPress(n){
+  if(pinBuffer.length>=4)return;
+  pinBuffer+=n;
+  $('#app').innerHTML=renderPin();
+  if(pinBuffer.length===4)setTimeout(pinSubmit,150);
+}
+function pinDel(){pinBuffer=pinBuffer.slice(0,-1);$('#app').innerHTML=renderPin();}
+function pinCancel(){state.mode='child';render();}
+function pinSubmit(){
+  if(pinMode==='set'){
+    pinFirst=pinBuffer;pinMode='confirm';pinBuffer='';$('#app').innerHTML=renderPin();
+  } else if(pinMode==='confirm'){
+    if(pinBuffer===pinFirst){state.parentPin=pinBuffer;save();state.mode='parent';parentView='dash';render();}
+    else{toast('PIN не совпал, попробуйте снова');pinMode='set';pinBuffer='';pinFirst='';$('#app').innerHTML=renderPin();}
+  } else {
+    if(pinBuffer===state.parentPin){state.mode='parent';parentView='dash';render();}
+    else{toast('Неверный PIN');pinBuffer='';$('#app').innerHTML=renderPin();}
+  }
+}
+
+let parentView='dash';
+const PARENT_NAV=[
+  {key:'dash',icon:'📊',label:'Дашборд'},
+  {key:'approve',icon:'✅',label:'Проверка'},
+  {key:'pquests',icon:'⚔️',label:'Квесты'},
+  {key:'profile',icon:'⚙️',label:'Профиль'},
+  {key:'phistory',icon:'📜',label:'История'},
+];
+function pgo(v){parentView=v;render();window.scrollTo(0,0);}
+function exitParent(){state.mode='child';render();}
+
+function renderParentShell(){
+  const p=activeProfile();
+  const pending=p.quests.filter(q=>q.status==='pending').length;
+  const nav=PARENT_NAV.map(n=>({...n,badge:n.key==='approve'&&pending?`<span class="badge">${pending}</span>`:''}));
+  const side=`<div class="sidebar">
+    <div class="brand">👨‍👩‍👧 Родителям</div>
+    ${nav.map(n=>`<button class="nav-btn ${parentView===n.key?'active':''}" onclick="pgo('${n.key}')"><span class="ic">${n.icon}</span>${n.label}${n.badge}</button>`).join('')}
+    <div style="flex:1"></div>
+    <button class="nav-btn" onclick="exitParent()"><span class="ic">🚪</span>Выйти к ребёнку</button>
+  </div>`;
+  const bottom=`<nav class="bottomnav">
+    ${nav.map(n=>`<button class="${parentView===n.key?'active':''}" onclick="pgo('${n.key}')"><span class="ic">${n.icon}</span>${n.label}${n.badge}</button>`).join('')}
+  </nav>`;
+
+  let body='';
+  switch(parentView){
+    case 'dash':body=parentDash(p);break;
+    case 'approve':body=parentApprove(p);break;
+    case 'pquests':body=parentQuests(p);break;
+    case 'profile':body=parentProfile(p);break;
+    case 'phistory':body=parentHistory(p);break;
+  }
+  return `<div class="shell">${side}<div class="main">
+    <div class="topbar">
+      <h1>${PARENT_NAV.find(n=>n.key===parentView).label}</h1>
+      <button class="btn sm ghost" onclick="exitParent()">🚪 К ребёнку</button>
+    </div>
+    <div class="container">
+      ${profileSwitcher(p)}
+      ${body}
+    </div>
+  </div>${bottom}</div>`;
+}
+function profileSwitcher(p){
+  return `<div class="row between wrap" style="margin-bottom:14px;gap:8px">
+    <div class="row wrap" style="gap:6px">
+    ${state.profiles.map(pr=>`<button class="chip ${pr.id===state.activeId?'sel':''}" onclick="switchProfile('${pr.id}')">${AGE[pr.age].emoji} ${esc(pr.name)}</button>`).join('')}
+    </div>
+    <button class="btn sm ghost" onclick="addChildModal()">➕ Ребёнок</button>
+  </div>`;
+}
+function switchProfile(id){state.activeId=id;save();render();}
+
+/* ----- Дашборд ----- */
+function parentDash(p){
+  const now=new Date();const monthAgo=new Date(now);monthAgo.setMonth(now.getMonth()-1);
+  const exp=p.transactions.filter(t=>t.type==='expense');
+  const spentMonth=exp.filter(t=>new Date(t.date)>=monthAgo).reduce((s,t)=>s+t.amount,0);
+  const saved=p.goals.reduce((s,g)=>s+g.saved,0);
+  const pendingQ=p.quests.filter(q=>q.status==='pending').length;
+  const doneQ=p.quests.filter(q=>q.status==='done').length;
+  return `<div class="grid grid2">
+    <div class="stat"><div class="v coin">${money(p.balance)}</div><div class="l">Баланс</div></div>
+    <div class="stat"><div class="v" style="color:var(--green)">${money(saved)}</div><div class="l">В копилках</div></div>
+    <div class="stat"><div class="v" style="color:var(--orange)">${money(spentMonth)}</div><div class="l">Потрачено за месяц</div></div>
+    <div class="stat"><div class="v" style="color:var(--blue)">${money(p.totalEarned)}</div><div class="l">Заработано всего</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Сводка по ${esc(p.name)}</h2>
+    <div class="li"><div class="lic">🎓</div><div class="lt"><div class="n">Уроки пройдены</div></div><div class="amt">${p.lessonsDone.length} / ${LESSONS.filter(l=>l.age===p.age).length}</div></div>
+    <div class="li"><div class="lic">⚔️</div><div class="lt"><div class="n">Квесты выполнены</div></div><div class="amt">${doneQ}</div></div>
+    <div class="li"><div class="lic">⏳</div><div class="lt"><div class="n">Ждут проверки</div></div><div class="amt">${pendingQ}</div></div>
+    <div class="li"><div class="lic">🎯</div><div class="lt"><div class="n">Активных целей</div></div><div class="amt">${p.goals.length}</div></div>
+  </div>
+  <div class="card">
+    <h2>Быстрые действия</h2>
+    <div class="grid grid2">
+      <button class="btn green" onclick="adjustModal('add')">➕ Начислить монеты</button>
+      <button class="btn red" onclick="adjustModal('sub')">➖ Списать монеты</button>
+    </div>
+    ${p.allowance.enabled&&checkAllowanceDue(p)?`<button class="btn full" style="margin-top:10px" onclick="payAllowanceActive()">💰 Выдать карманные деньги</button>`:''}
+  </div>
+  <div class="card">
+    <h2>Опасная зона</h2>
+    <div class="grid grid2">
+      <button class="btn ghost" onclick="resetPeriod()">🔄 Новый период</button>
+      <button class="btn ghost" onclick="resetData()">🗑️ Сбросить данные</button>
+    </div>
+  </div>`;
+}
+function adjustModal(kind){
+  openModal(`<h2>${kind==='add'?'Начислить':'Списать'} монеты <span class="x" onclick="closeModal()">×</span></h2>
+    <div class="field"><label>Сумма (${cur()})</label><input id="adj-amt" type="number" min="1" placeholder="50"></div>
+    <div class="field"><label>Комментарий</label><input id="adj-note" placeholder="${kind==='add'?'За хорошее поведение':'Штраф'}" maxlength="40"></div>
+    <button class="btn full ${kind==='add'?'green':'red'}" onclick="doAdjust('${kind}')">${kind==='add'?'Начислить':'Списать'}</button>`);
+}
+function doAdjust(kind){
+  const p=activeProfile();const amt=parseFloat($('#adj-amt').value);const note=($('#adj-note').value||'').trim()||'Ручная операция';
+  if(!amt||amt<=0){toast('Введите сумму');return;}
+  if(kind==='add'){p.balance+=amt;p.totalEarned+=amt;p.transactions.unshift({id:uid(),type:'manual',amount:amt,cat:'manual',note:'➕ '+note,date:todayISO()});}
+  else{p.balance-=amt;p.transactions.unshift({id:uid(),type:'manual',amount:-amt,cat:'manual',note:'➖ '+note,date:todayISO()});}
+  save();closeModal();toast('Готово');render();
+}
+function resetPeriod(){
+  if(!confirm('Начать новый период? Транзакции и история трат очистятся, баланс и копилки сохранятся.'))return;
+  const p=activeProfile();p.transactions=[];p.budget=null;
+  p.quests=p.quests.filter(q=>!['done','rejected'].includes(q.status));
+  save();toast('Новый период начат 🔄');render();
+}
+function resetData(){
+  if(!confirm('Удалить ВСЕ данные этого ребёнка? Действие необратимо.'))return;
+  state.profiles=state.profiles.filter(x=>x.id!==state.activeId);
+  state.activeId=state.profiles[0]?state.profiles[0].id:null;
+  if(!state.activeId)state.mode='child';
+  save();toast('Данные удалены');render();
+}
+
+/* ----- Проверка квестов ----- */
+function parentApprove(p){
+  const pend=p.quests.filter(q=>q.status==='pending');
+  if(!pend.length)return `<div class="emptystate card"><span class="em">✅</span><h2>Всё проверено!</h2><p>Нет квестов, ожидающих одобрения.</p></div>`;
+  return `<p class="muted" style="margin-bottom:12px">${esc(p.name)} выполнил эти квесты. Одобрите начисление награды.</p>`+
+    pend.map(q=>{
+      const c=QUEST_CATS[q.cat];
+      return `<div class="qcard">
+        <div class="qic">${q.icon||c.icon}</div>
+        <div class="qbody">
+          <div class="t">${esc(q.title)}</div>
+          <div class="d">${esc(q.desc||'')}</div>
+          <span class="pill green">💰 ${money(q.reward)}</span>
+          <div class="row wrap" style="gap:8px;margin-top:10px">
+            <button class="btn sm green" onclick="approveQuest('${q.id}')">✅ Одобрить</button>
+            <button class="btn sm red" onclick="rejectQuest('${q.id}')">✖ Отклонить</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+}
+function approveQuest(id){
+  const p=activeProfile();const q=p.quests.find(x=>x.id===id);
+  q.status='done';p.balance+=q.reward;p.totalEarned+=q.reward;
+  p.transactions.unshift({id:uid(),type:'quest',amount:q.reward,cat:'quest',note:'Квест: '+q.title,date:todayISO()});
+  save();confetti();toast('Одобрено! Монеты начислены 💰');render();
+}
+function rejectQuest(id){
+  openModal(`<h2>Отклонить квест <span class="x" onclick="closeModal()">×</span></h2>
+    <div class="field"><label>Комментарий ребёнку</label><textarea id="rej-c" placeholder="Например: помой посуду ещё раз, осталось пятно"></textarea></div>
+    <button class="btn full red" onclick="doReject('${id}')">Отклонить с комментарием</button>`);
+}
+function doReject(id){
+  const p=activeProfile();const q=p.quests.find(x=>x.id===id);
+  q.status='rejected';q.comment=($('#rej-c').value||'').trim()||'Нужно переделать';
+  save();closeModal();toast('Отклонено, ребёнок увидит комментарий');render();
+}
+
+/* ----- Управление квестами ----- */
+function parentQuests(p){
+  let out=`<button class="btn full" style="margin-bottom:12px" onclick="questModal()">➕ Создать квест</button>
+    <button class="btn full ghost" style="margin-bottom:16px" onclick="loadTemplates()">📦 Загрузить шаблоны для «${AGE[p.age].name}»</button>`;
+  const active=p.quests.filter(q=>['available','taken','pending'].includes(q.status));
+  const done=p.quests.filter(q=>['done','rejected'].includes(q.status));
+  if(!p.quests.length){out+=`<div class="emptystate card"><span class="em">⚔️</span><p>Создайте первый квест или загрузите готовые шаблоны.</p></div>`;return out;}
+  out+=`<div class="section-title">Активные (${active.length})</div>`;
+  out+=active.map(q=>parentQuestRow(q)).join('')||'<p class="muted small">Нет активных</p>';
+  if(done.length){out+=`<div class="section-title">Завершённые</div>`+done.slice(0,20).map(q=>parentQuestRow(q)).join('');}
+  return out;
+}
+function parentQuestRow(q){
+  const c=QUEST_CATS[q.cat];const d=DIFF[q.diff];
+  const st={available:'Доступен',taken:'Взят',pending:'⏳ Проверка',done:'✅ Готов',rejected:'Отклонён'}[q.status];
+  return `<div class="li">
+    <div class="lic">${q.icon||c.icon}</div>
+    <div class="lt"><div class="n">${esc(q.title)}</div><div class="s">${d.icon} ${d.name} · ${st} · 💰 ${money(q.reward)}</div></div>
+    <button class="btn sm ghost" onclick="questModal('${q.id}')">✏️</button>
+    <button class="x" style="font-size:20px" onclick="delQuest('${q.id}')">×</button>
+  </div>`;
+}
+function questModal(id){
+  const p=activeProfile();const q=id?p.quests.find(x=>x.id===id):null;
+  openModal(`<h2>${q?'Изменить квест':'Новый квест'} <span class="x" onclick="closeModal()">×</span></h2>
+    <div class="field"><label>Название</label><input id="q-title" value="${q?esc(q.title):''}" placeholder="Вымыть посуду" maxlength="40"></div>
+    <div class="field"><label>Описание</label><textarea id="q-desc" placeholder="Что нужно сделать">${q?esc(q.desc):''}</textarea></div>
+    <div class="field"><label>Награда (${cur()})</label><input id="q-rew" type="number" min="1" value="${q?q.reward:''}" placeholder="25"></div>
+    <div class="field"><label>Категория</label><select id="q-cat">${Object.entries(QUEST_CATS).map(([k,v])=>`<option value="${k}" ${q&&q.cat===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
+    <div class="field"><label>Сложность</label><select id="q-diff">${Object.entries(DIFF).map(([k,v])=>`<option value="${k}" ${q&&q.diff===k?'selected':''}>${v.icon} ${v.name} (${v.time})</option>`).join('')}</select></div>
+    <div class="field"><label>Срок (необязательно)</label><input id="q-due" type="date"${q&&q.due?` value="${q.due}"`:''}></div>
+    <button class="btn full green" onclick="saveQuest('${id||''}')">Сохранить</button>`);
+}
+function saveQuest(id){
+  const p=activeProfile();
+  const title=($('#q-title').value||'').trim();
+  const reward=parseFloat($('#q-rew').value);
+  if(!title||!reward||reward<=0){toast('Заполни название и награду');return;}
+  const data={title,desc:($('#q-desc').value||'').trim(),reward,cat:$('#q-cat').value,diff:$('#q-diff').value,due:$('#q-due').value||null};
+  if(id){const q=p.quests.find(x=>x.id===id);Object.assign(q,data);}
+  else{p.quests.push({id:uid(),...data,icon:QUEST_CATS[data.cat].icon,status:'available',comment:null});}
+  save();closeModal();toast('Квест сохранён ⚔️');render();
+}
+function delQuest(id){
+  if(!confirm('Удалить квест?'))return;
+  const p=activeProfile();p.quests=p.quests.filter(x=>x.id!==id);save();toast('Удалено');render();
+}
+function loadTemplates(){
+  const p=activeProfile();
+  const templates=QUEST_TEMPLATES.filter(t=>t.age===p.age);
+  const existing=new Set(p.quests.map(q=>q.title));
+  let added=0;
+  templates.forEach(t=>{
+    if(existing.has(t.title))return;
+    p.quests.push({id:uid(),title:t.title,desc:t.desc,reward:t.reward,cat:t.cat,diff:t.diff,icon:t.icon,due:null,status:'available',comment:null});
+    added++;
+  });
+  save();toast(added?`Добавлено ${added} квестов 📦`:'Все шаблоны уже добавлены');render();
+}
+
+/* ----- Профиль / настройки ----- */
+function parentProfile(p){
+  const al=p.allowance;
+  return `<div class="card">
+    <h2>Профиль ребёнка</h2>
+    <div class="field"><label>Имя</label><input id="pr-name" value="${esc(p.name)}" maxlength="20"></div>
+    <div class="field"><label>Возрастная группа</label><select id="pr-age">${Object.values(AGE).map(a=>`<option value="${a.key}" ${p.age===a.key?'selected':''}>${a.emoji} ${a.name} (${a.age})</option>`).join('')}</select></div>
+    <div class="field"><label>Валюта</label><select id="pr-cur">${Object.keys(CURRENCIES).map(c=>`<option ${p.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <button class="btn green" onclick="saveProfileInfo()">Сохранить профиль</button>
+  </div>
+  <div class="card">
+    <h2>💵 Карманные деньги</h2>
+    <label class="row between" style="cursor:pointer;margin-bottom:12px"><span>Включить карманные деньги</span>
+      <input type="checkbox" id="al-on" ${al.enabled?'checked':''} style="width:20px;height:20px"></label>
+    <div class="field"><label>Сумма (${cur()})</label><input id="al-amt" type="number" min="0" value="${al.amount||''}" placeholder="500"></div>
+    <div class="field"><label>Периодичность</label><select id="al-period">
+      <option value="week" ${al.period==='week'?'selected':''}>Еженедельно</option>
+      <option value="biweek" ${al.period==='biweek'?'selected':''}>Раз в 2 недели</option>
+      <option value="month" ${al.period==='month'?'selected':''}>Ежемесячно</option>
+    </select></div>
+    <div class="field"><label>День выдачи</label><select id="al-day">
+      ${['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'].map((d,i)=>`<option value="${i}" ${al.day==i?'selected':''}>${d}</option>`).join('')}
+    </select></div>
+    <hr>
+    <h3>Правило трёх конвертов (%)</h3>
+    <p class="small muted" style="margin-bottom:10px">Как распределять карманные деньги. Сумма должна быть 100%.</p>
+    <div class="grid grid3">
+      <div class="field"><label>🛍️ Трачу</label><input id="al-spend" type="number" min="0" max="100" value="${al.envelopes.spend}"></div>
+      <div class="field"><label>🏦 Коплю</label><input id="al-save" type="number" min="0" max="100" value="${al.envelopes.save}"></div>
+      <div class="field"><label>🎁 Дарю</label><input id="al-give" type="number" min="0" max="100" value="${al.envelopes.give}"></div>
+    </div>
+    <button class="btn green" onclick="saveAllowance()">Сохранить настройки</button>
+  </div>
+  <div class="card">
+    <h2>🔒 Безопасность</h2>
+    <button class="btn ghost" onclick="changePin()">Сменить PIN-код</button>
+  </div>`;
+}
+function saveProfileInfo(){
+  const p=activeProfile();
+  p.name=($('#pr-name').value||'').trim()||p.name;
+  p.age=$('#pr-age').value;p.currency=$('#pr-cur').value;
+  save();toast('Профиль сохранён');render();
+}
+function saveAllowance(){
+  const p=activeProfile();const al=p.allowance;
+  al.enabled=$('#al-on').checked;
+  al.amount=parseFloat($('#al-amt').value)||0;
+  al.period=$('#al-period').value;al.day=parseInt($('#al-day').value);
+  const s=parseInt($('#al-spend').value)||0,sv=parseInt($('#al-save').value)||0,g=parseInt($('#al-give').value)||0;
+  if(s+sv+g!==100){toast('Сумма конвертов должна быть 100% (сейчас '+(s+sv+g)+'%)');return;}
+  al.envelopes={spend:s,save:sv,give:g};
+  if(al.enabled&&!al.lastPaid)al.lastPaid=null;
+  save();toast('Настройки карманных денег сохранены 💵');render();
+}
+function changePin(){state.parentPin=null;parentEntry();}
+
+function addChildModal(){
+  obAge=null;
+  openModal(`<h2>Добавить ребёнка <span class="x" onclick="closeModal()">×</span></h2>
+    <div class="field"><label>Имя</label><input id="nc-name" placeholder="Имя ребёнка" maxlength="20"></div>
+    <div class="field"><label>Возрастная группа</label><select id="nc-age">${Object.values(AGE).map(a=>`<option value="${a.key}">${a.emoji} ${a.name} (${a.age})</option>`).join('')}</select></div>
+    <div class="field"><label>Валюта</label><select id="nc-cur">${Object.keys(CURRENCIES).map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <button class="btn full green" onclick="addChild()">Добавить</button>`);
+}
+function addChild(){
+  const name=($('#nc-name').value||'').trim();
+  if(!name){toast('Введите имя');return;}
+  const p=newProfile(name,$('#nc-age').value,$('#nc-cur').value);
+  state.profiles.push(p);state.activeId=p.id;save();closeModal();toast('Ребёнок добавлен 👶');render();
+}
+
+/* ----- История ----- */
+function parentHistory(p){
+  if(!p.transactions.length)return `<div class="emptystate card"><span class="em">📜</span><p>История пуста.</p></div>`;
+  const typeLabel={income:'Доход',expense:'Трата',allowance:'Карманные',quest:'Квест',manual:'Вручную'};
+  return `<div class="card"><h2>Все операции (${p.transactions.length})</h2>
+    <table><thead><tr><th>Дата</th><th>Тип</th><th>Описание</th><th style="text-align:right">Сумма</th></tr></thead><tbody>
+    ${p.transactions.map(t=>{
+      const c=EXPENSE_CATS.find(x=>x.key===t.cat);
+      const desc=t.type==='expense'?(c?c.name:'')+(t.note?' · '+esc(t.note):''):esc(t.note||'');
+      const neg=t.type==='expense'||t.amount<0;
+      return `<tr><td>${fmtDate(t.date)}</td><td>${typeLabel[t.type]||t.type}</td><td>${desc}</td>
+        <td style="text-align:right;color:${neg?'var(--orange)':'var(--green)'};font-weight:700">${neg?'−':'+'}${money(Math.abs(t.amount))}</td></tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+}
+
+/* ============================================================
+   СТАРТ
+   ============================================================ */
+render();
+window.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>

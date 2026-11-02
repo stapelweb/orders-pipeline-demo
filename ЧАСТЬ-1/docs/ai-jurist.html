@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Юрист · Сервис экспертизы договоров</title>
+<meta name="description" content="Проверка договора по 12 точкам риска: опасные пункты подсвечены светофором, к каждому — готовая формулировка правки.">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --law: #b6582c;
+    --law-dark: #8a3f1c;
+    --law-light: #fbeee5;
+    --ink: #2c1d12;
+    --muted: #7a6655;
+    --card: #ffffff;
+    --border: #ead9ca;
+    --green: #2c7a4d;
+    --yellow: #c89020;
+    --red: #c8302c;
+  }
+  body {
+    background: linear-gradient(160deg, #faf3ec 0%, #f1e3d5 100%);
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: var(--ink); min-height: 100vh; padding: 2rem 1rem; line-height: 1.5;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(135deg, var(--law), var(--law-dark));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 0.5rem; letter-spacing: -0.02em;
+  }
+  .header p { color: var(--muted); font-size: 1.05rem; max-width: 640px; margin: 0 auto; }
+  .badge { display: inline-block; background: var(--law-light); color: var(--law-dark);
+    padding: 0.3rem 0.9rem; border-radius: 30px; font-size: 0.8rem; font-weight: 600; margin-top: 0.6rem; }
+
+  .input-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  @media (max-width: 800px) { .input-row { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--card); border-radius: 1.5rem; padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(138, 63, 28, 0.08); border: 1px solid var(--border);
+  }
+  .panel h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+
+  .input-area {
+    width: 100%; min-height: 320px; border: 2px dashed var(--border);
+    border-radius: 1rem; padding: 1rem;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 0.88rem;
+    resize: vertical; background: #fefbf8;
+  }
+  .input-area:focus { outline: none; border-color: var(--law); background: white; }
+
+  .label { font-size: 0.8rem; color: var(--muted); margin: 0.8rem 0 0.4rem;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .role-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .role-btn {
+    flex: 1; min-width: 130px;
+    background: white; border: 2px solid var(--border);
+    padding: 0.6rem 0.5rem; border-radius: 0.7rem;
+    cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 500;
+  }
+  .role-btn.active { border-color: var(--law); background: var(--law-light); color: var(--law-dark); }
+
+  select {
+    width: 100%; padding: 0.7rem; border-radius: 0.8rem;
+    border: 2px solid var(--border); font-family: inherit; font-size: 0.92rem;
+    background: white; cursor: pointer;
+  }
+  select:focus { outline: none; border-color: var(--law); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--law), var(--law-dark));
+    color: white; border: none; padding: 0.9rem 1.8rem; border-radius: 2rem;
+    font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%;
+    margin-top: 1rem; box-shadow: 0 4px 12px rgba(182, 88, 44, 0.3); font-family: inherit;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+
+  .sample-btn {
+    background: transparent; color: var(--law-dark); border: 1px dashed var(--law);
+    padding: 0.4rem 0.9rem; border-radius: 30px; font-size: 0.8rem;
+    cursor: pointer; font-family: inherit; margin-top: 0.5rem;
+  }
+
+  /* RESULTS */
+  .results { display: none; }
+  .results.show { display: block; }
+
+  .verdict-card {
+    background: white; border-radius: 1.5rem; padding: 1.8rem;
+    margin-bottom: 1.5rem; border: 1px solid var(--border);
+    text-align: center;
+  }
+  .verdict-card.green { background: #f0f9f3; border-color: var(--green); }
+  .verdict-card.yellow { background: #fdf6e5; border-color: var(--yellow); }
+  .verdict-card.red { background: #fcf0ef; border-color: var(--red); }
+  .verdict-big { font-size: 3rem; margin-bottom: 0.5rem; }
+  .verdict-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .verdict-desc { color: var(--muted); font-size: 0.95rem; max-width: 600px; margin: 0 auto; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.8rem; margin-top: 1.2rem; max-width: 700px; margin-left: auto; margin-right: auto;
+  }
+  .stat {
+    background: white; padding: 0.8rem; border-radius: 0.8rem;
+    border: 1px solid var(--border);
+  }
+  .stat-num { font-size: 1.6rem; font-weight: 700; }
+  .stat-num.red { color: var(--red); }
+  .stat-num.yellow { color: var(--yellow); }
+  .stat-num.green { color: var(--green); }
+  .stat-lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .section-title { font-size: 1.15rem; font-weight: 700; margin: 1.8rem 0 0.8rem; }
+
+  .risk-item {
+    background: white; border-radius: 1rem; padding: 1.2rem 1.4rem;
+    margin-bottom: 0.8rem; border-left: 5px solid var(--border);
+    box-shadow: 0 4px 12px rgba(138, 63, 28, 0.05);
+  }
+  .risk-item.red { border-left-color: var(--red); background: #fef5f5; }
+  .risk-item.yellow { border-left-color: var(--yellow); background: #fdfaf2; }
+  .risk-item.green { border-left-color: var(--green); background: #f3faf6; }
+
+  .risk-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; margin-bottom: 0.6rem;
+  }
+  .risk-title { font-weight: 700; font-size: 1.02rem; }
+  .risk-light { font-size: 1.3rem; flex-shrink: 0; }
+
+  .risk-quote {
+    background: #f8efe6; padding: 0.6rem 0.9rem; border-radius: 0.5rem;
+    font-size: 0.85rem; font-style: italic; color: var(--ink);
+    margin: 0.6rem 0; border-left: 3px solid var(--law-light);
+    font-family: 'JetBrains Mono', monospace; line-height: 1.4;
+  }
+
+  .risk-norm {
+    font-size: 0.84rem; color: var(--muted); margin: 0.4rem 0;
+  }
+  .risk-norm strong { color: var(--law-dark); font-weight: 600; }
+
+  .risk-fix {
+    background: white; border: 2px solid var(--law-light);
+    padding: 0.7rem 1rem; border-radius: 0.6rem;
+    margin-top: 0.6rem; font-size: 0.88rem;
+  }
+  .risk-fix-label {
+    font-size: 0.72rem; color: var(--law-dark); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem;
+  }
+
+  .copy-btn-inline {
+    background: var(--law-light); color: var(--law-dark);
+    border: none; padding: 0.25rem 0.7rem; border-radius: 20px;
+    font-size: 0.72rem; cursor: pointer; font-family: inherit;
+    margin-left: 0.5rem; font-weight: 600;
+  }
+  .copy-btn-inline:hover { background: var(--law); color: white; }
+
+  .top3 {
+    background: white; border-radius: 1rem; padding: 1.2rem 1.4rem;
+    margin-top: 1rem; border: 1px solid var(--border);
+  }
+  .top3 ol { padding-left: 1.5rem; }
+  .top3 li { margin-bottom: 0.5rem; font-size: 0.93rem; }
+
+  .empty-state { padding: 2rem; text-align: center; color: var(--muted); font-style: italic; }
+  .footer { text-align: center; margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }
+</style>
+    <link rel="canonical" href="https://stapelweb.ru/ai-jurist.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/ai-jurist.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>⚖️ AI-Юрист</h1>
+    <p>Сервис проходит по 12 точкам риска в договоре, подсвечивает опасные пункты светофором и даёт готовые переформулировки со ссылками на ГК РФ.</p>
+    <div class="badge">⚙️ Работает локально · Текст договора не покидает браузер</div>
+  </div>
+
+  <div class="input-row">
+    <div class="panel">
+      <h2>📄 Текст договора</h2>
+      <textarea id="input" class="input-area" placeholder="Вставьте сюда текст договора целиком или критичные пункты..."></textarea>
+      <button class="sample-btn" id="sampleBtn">📋 Загрузить пример договора с рисками</button>
+    </div>
+
+    <div class="panel">
+      <h2>⚙️ Параметры</h2>
+      <div class="label">Ваша роль</div>
+      <div class="role-buttons" id="roleGrp">
+        <button class="role-btn active" data-role="покупатель">Покупатель / Заказчик</button>
+        <button class="role-btn" data-role="поставщик">Поставщик / Исполнитель</button>
+      </div>
+      <div class="label">Тип договора</div>
+      <select id="typeSel">
+        <option>Договор поставки</option>
+        <option>Договор оказания услуг</option>
+        <option>Договор подряда</option>
+        <option>Договор аренды</option>
+        <option>Договор ГПХ</option>
+        <option>Лицензионный договор</option>
+        <option>NDA</option>
+      </select>
+      <div class="label">Сумма сделки</div>
+      <select id="sumSel">
+        <option>до 500 тыс. ₽</option>
+        <option>500 тыс. – 5 млн ₽</option>
+        <option>5 – 50 млн ₽</option>
+        <option>свыше 50 млн ₽</option>
+      </select>
+      <button class="btn-primary" id="analyzeBtn">⚖️ Проанализировать</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <div id="verdict"></div>
+    <div class="section-title">🔴 Критичные риски</div>
+    <div id="redRisks"></div>
+    <div class="section-title">🟡 Существенные риски</div>
+    <div id="yellowRisks"></div>
+    <div class="section-title">🟢 Что в норме</div>
+    <div id="greenChecks"></div>
+    <div class="section-title">📋 Топ для переговоров</div>
+    <div id="top3"></div>
+  </div>
+
+  <div class="footer">
+    Анализ основан на нормах ГК РФ и постановлениях Пленума ВС РФ.<br>
+    Это экспресс-оценка — для крупных сделок дополнительно консультируйтесь с юристом.
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// =============== ПРАВИЛА АНАЛИЗА ===============
+// Каждое правило: ищет паттерн, оценивает риск, даёт переформулировку.
+// {id, name, find(text, ctx) → {level, quote, why, fix} | null}
+
+const CHECKS = [
+  {
+    id: 'penalty',
+    name: 'Неустойка / штрафы',
+    find: (text, ctx) => {
+      // ищем "неустойка X%" или "пени X%" или "штраф X%"
+      const m = text.match(/(неустойк[аи]|пени|штраф)[^.]{0,150}?(\d+(?:[.,]\d+)?)\s*%/i);
+      if (!m) return null;
+      const pct = parseFloat(m[2].replace(',', '.'));
+      const quoteCtx = extractContext(text, m.index, m[0].length);
+      // Для покупателя/заказчика опасна неустойка ему. Для поставщика — наоборот.
+      // Здесь делаем по объективному критерию: > 0,1% в день — повышенный риск снижения по ст. 333.
+      if (pct >= 0.5) {
+        return {
+          level: 'red',
+          quote: quoteCtx,
+          why: `Неустойка <strong>${pct}%</strong> в день = <strong>${(pct*365).toFixed(0)}%</strong> годовых. Суды массово снижают такую неустойку по <strong>ст. 333 ГК РФ</strong> (Постановление Пленума ВС РФ № 7 от 24.03.2016, п. 71–81). Юридически взыскать в полном объёме практически невозможно — пункт работает как пугалка, но создаёт риск встречного иска о признании условия несправедливым.`,
+          fix: `Заменить на: "За нарушение сроков ${ctx.role === 'покупатель' ? 'поставки/оказания услуг Исполнителем' : 'оплаты Покупателем'} начисляется неустойка в размере 0,1% от суммы просроченного обязательства за каждый день просрочки, но не более 10% от цены договора."`
+        };
+      }
+      if (pct >= 0.15) {
+        return {
+          level: 'yellow',
+          quote: quoteCtx,
+          why: `Неустойка ${pct}% выше судебного ориентира 0,1% в день. Возможна частичная переквалификация по ст. 333 ГК РФ.`,
+          fix: `Снизить до 0,1% в день и/или установить лимит "не более 10% от цены договора".`
+        };
+      }
+      return {
+        level: 'green',
+        quote: quoteCtx,
+        why: `Неустойка ${pct}% соответствует судебной практике и не подлежит снижению по ст. 333 ГК РФ.`,
+      };
+    }
+  },
+  {
+    id: 'jurisdiction',
+    name: 'Подсудность',
+    find: (text, ctx) => {
+      const m = text.match(/(подсудност[ьи]|разрешени[еи]\s+споров|рассматриваются?\s+в\s+(арбитражном|третейском)\s+суд)[^.]{0,200}/i);
+      if (!m) return null;
+      const quoteCtx = m[0];
+      // Опасно, если: третейский суд / иностранный / далеко от вас
+      const isThird = /третейск/i.test(quoteCtx);
+      const isAbroad = /(лондон|стокгольм|сингапур|международн.*арбитраж)/i.test(quoteCtx);
+      const regionMention = quoteCtx.match(/арбитражн.*суд[а-я]*\s+([А-ЯЁ][а-яё-]+(?:ского|ой|кого|ской)?\s+(?:края|области|округа|города|г\.))/i);
+      if (isThird) return {
+        level: 'red',
+        quote: quoteCtx,
+        why: `Третейский суд с конкретным составом часто связан с одной из сторон. Решение исполняется через арбитражный суд, но обжаловать его сложнее. <strong>Постановление КС РФ № 10-П от 18.11.2014</strong> ограничивает использование "карманных" третейских судов.`,
+        fix: `Заменить на: "Споры по настоящему договору рассматриваются в арбитражном суде по месту нахождения ответчика в соответствии со ст. 35 АПК РФ."`
+      };
+      if (isAbroad) return {
+        level: 'red',
+        quote: quoteCtx,
+        why: `Иностранный арбитраж для российской сделки = риск неисполнимого решения, валютные расходы, длительные сроки.`,
+        fix: `Установить российскую подсудность: "Споры рассматриваются в арбитражном суде по месту нахождения ответчика."`
+      };
+      if (regionMention && ctx.role === 'покупатель') return {
+        level: 'yellow',
+        quote: quoteCtx,
+        why: `Подсудность <strong>${regionMention[1]}</strong> — фиксированный регион. Если вы из другого региона, расходы на представителя и поездки лягут на вас. По <strong>ст. 35 АПК РФ</strong> по умолчанию иск подаётся по месту ответчика.`,
+        fix: `Заменить на: "Споры рассматриваются в арбитражном суде по месту нахождения ответчика" — это нейтральный и сбалансированный вариант.`
+      };
+      return {
+        level: 'green',
+        quote: quoteCtx,
+        why: `Подсудность установлена в нейтральном ключе.`
+      };
+    }
+  },
+  {
+    id: 'unilateral',
+    name: 'Одностороннее расторжение',
+    find: (text, ctx) => {
+      const m = text.match(/(одностороннем?\s+(?:порядке|отказ)|односторонне|расторгнут[ьи]|отказаться\s+от\s+исполнения)[^.]{0,250}/i);
+      if (!m) return null;
+      const q = m[0];
+      // Признаки одностороннего разрыва только у одной стороны
+      const oneSide = /(заказчик|покупатель|поставщик|исполнитель|арендодатель|арендатор)\s+(?:вправе|имеет\s+право|может)\s+(?:в\s+)?одностороннем?/i.test(q);
+      if (oneSide) {
+        return {
+          level: 'red',
+          quote: q,
+          why: `Право на немотивированный односторонний отказ есть только у одной стороны — нарушение принципа равенства. По <strong>ст. 310 ГК РФ</strong> одностороннее изменение / расторжение допустимо, но условия должны быть симметричны для предпринимательских договоров.`,
+          fix: `Установить взаимность: "Каждая из Сторон вправе в одностороннем внесудебном порядке отказаться от исполнения настоящего договора, уведомив другую Сторону не менее чем за 30 (тридцать) календарных дней."`
+        };
+      }
+      return {
+        level: 'yellow',
+        quote: q,
+        why: `Условия одностороннего отказа упомянуты — проверьте, прописан ли срок уведомления и сохраняются ли обязательства по уже выполненным работам.`,
+        fix: `Добавить: "Сторона, инициирующая отказ, уведомляет вторую Сторону не менее чем за 30 календарных дней. Расчёты по фактически выполненным обязательствам производятся в течение 10 рабочих дней."`
+      };
+    }
+  },
+  {
+    id: 'price-change',
+    name: 'Одностороннее изменение цены',
+    find: (text, ctx) => {
+      const m = text.match(/(изменени[еи]\s+цены|корректировк[аи]\s+цены|увеличени[еи]\s+стоимости|пересмотр\s+цены)[^.]{0,200}/i);
+      if (!m) return null;
+      const q = m[0];
+      const oneSide = /(вправе|может|имеет\s+право)\s+(?:в\s+)?одностороннем?|без\s+согласия|самостоятельно/i.test(q);
+      if (oneSide && ctx.role === 'покупатель') {
+        return {
+          level: 'red',
+          quote: q,
+          why: `Право поставщика менять цену в одностороннем порядке — серьёзный риск. По <strong>ст. 424 ГК РФ</strong> изменение цены после заключения договора допускается только в случаях, прямо предусмотренных договором или законом.`,
+          fix: `Заменить на: "Цена является фиксированной на весь срок действия договора. Изменение цены возможно только по соглашению Сторон, оформленному дополнительным соглашением. При росте курса валют свыше 15% Стороны проводят переговоры о корректировке."`
+        };
+      }
+      return {
+        level: 'yellow',
+        quote: q,
+        why: `Условие об изменении цены требует внимания: проверьте, в каких случаях, на сколько процентов и с каким уведомлением допускается изменение.`,
+        fix: `Установить коридор изменения (например, не более 10% в год) и обязательное письменное уведомление за 30 дней.`
+      };
+    }
+  },
+  {
+    id: 'force-majeure',
+    name: 'Форс-мажор',
+    find: (text, ctx) => {
+      const m = text.match(/(форс-мажор|обстоятельств[а]\s+непреодолимой\s+силы)[^.]{0,300}/i);
+      if (!m) return null;
+      const q = m[0];
+      const hasNotice = /уведом|известить|сообщить/i.test(q);
+      const noticeShortMatch = q.match(/(\d+)\s*(?:календарных|рабочих)?\s*дн/i);
+      if (!hasNotice) return {
+        level: 'yellow',
+        quote: q,
+        why: `Нет порядка уведомления о форс-мажоре. По <strong>п. 3 ст. 401 ГК РФ</strong> сторона должна без промедления уведомить о наступлении обстоятельств — иначе теряет право на освобождение от ответственности.`,
+        fix: `Добавить: "Сторона, для которой создалась невозможность исполнения, обязана уведомить другую Сторону в письменной форме в течение 5 (пяти) рабочих дней с момента возникновения форс-мажора. Подтверждение — сертификат ТПП РФ."`
+      };
+      if (noticeShortMatch && parseInt(noticeShortMatch[1]) <= 2) return {
+        level: 'yellow',
+        quote: q,
+        why: `Короткий срок уведомления (${noticeShortMatch[1]} дн.) трудновыполним в реальном форс-мажоре. Постановление Пленума ВС РФ № 7 от 24.03.2016 п. 10: разумный срок — обычно 5–10 дней.`,
+        fix: `Увеличить до 5–10 рабочих дней с момента, когда сторона узнала о наступлении обстоятельств.`
+      };
+      return {
+        level: 'green',
+        quote: q,
+        why: `Раздел о форс-мажоре содержит порядок уведомления — соответствует ст. 401 ГК РФ.`
+      };
+    }
+  },
+  {
+    id: 'set-off',
+    name: 'Зачёт встречных требований',
+    find: (text, ctx) => {
+      const m = text.match(/(зачёт|зачет)[^.]{0,200}/i);
+      if (m) {
+        const prohibited = /(не\s+допускается|запрещ|не\s+вправе)/i.test(m[0]);
+        if (prohibited && ctx.role === 'покупатель') return {
+          level: 'yellow',
+          quote: m[0],
+          why: `Запрет зачёта (<strong>ст. 410 ГК РФ</strong>) — невыгодно покупателю/заказчику. Если поставщик нарушит обязательства, вы не сможете "взаимозачесть" свои требования и будете вынуждены платить полностью, а потом взыскивать через суд.`,
+          fix: `Заменить на: "Стороны вправе производить зачёт встречных однородных требований в порядке ст. 410 ГК РФ путём направления письменного заявления."`
+        };
+        return { level: 'green', quote: m[0], why: 'Условие о зачёте присутствует.' };
+      }
+      // Зачёт не упомянут вообще — для покупателя средний риск
+      if (ctx.role === 'покупатель') return {
+        level: 'yellow',
+        quote: '(в договоре отсутствует условие о зачёте)',
+        why: `Хотя по <strong>ст. 410 ГК РФ</strong> зачёт возможен по умолчанию, прямое указание защищает от споров. В судебной практике встречаются попытки оспорить заявление о зачёте.`,
+        fix: `Добавить пункт: "Стороны вправе производить зачёт встречных однородных требований в порядке ст. 410 ГК РФ путём направления письменного заявления."`
+      };
+      return null;
+    }
+  },
+  {
+    id: 'acceptance',
+    name: 'Приёмка и претензии по качеству',
+    find: (text, ctx) => {
+      const m = text.match(/(приёмк|приемк|претензи|претензий)[^.]{0,250}/i);
+      if (!m) return null;
+      const q = m[0];
+      const shortPeriod = q.match(/(\d+)\s*(?:календарн|рабоч)?[а-я]*\s*дн/i);
+      const silent = /(если\s+(?:не|нет)\s+(?:претензи|возражени|замечани)).*?считается\s+принят/i.test(q);
+      if (silent) return {
+        level: 'red',
+        quote: q,
+        why: `"Молчаливая приёмка" — товар/работа считается принятой, если вы не направили возражения. Это опасно: задержка письма, потеря почты, отпуск ответственного — и качество уже не оспорить.`,
+        fix: `Заменить на: "Приёмка осуществляется по акту приёма-передачи, подписанному обеими Сторонами. Стороны не вправе ссылаться на 'молчаливое согласие'. При обнаружении скрытых недостатков претензии могут быть заявлены в течение гарантийного срока."`
+      };
+      if (shortPeriod && parseInt(shortPeriod[1]) <= 3) return {
+        level: 'yellow',
+        quote: q,
+        why: `Срок на предъявление претензий по качеству ${shortPeriod[1]} дн. — слишком короткий. По <strong>ст. 477 ГК РФ</strong> разумный срок зависит от характера товара; для большинства случаев — не менее 5–14 дней.`,
+        fix: `Увеличить срок до 10 рабочих дней + предусмотреть отдельный срок для скрытых недостатков (в пределах гарантийного срока).`
+      };
+      return { level: 'green', quote: q, why: 'Порядок приёмки описан, срок претензий разумный.' };
+    }
+  },
+  {
+    id: 'confidentiality',
+    name: 'Конфиденциальность / NDA',
+    find: (text, ctx) => {
+      const m = text.match(/(конфиденциальн|коммерческ.*тайн|nda|неразглашен)[^.]{0,300}/i);
+      if (!m) return null;
+      const q = m[0];
+      const fineMatch = q.match(/штраф[^.]*?(\d+(?:[  ]\d{3})*|\d+)\s*(?:руб|₽)/i);
+      const eternal = /(бессрочн|без\s+ограничени|пожизненн)/i.test(q);
+      if (fineMatch) {
+        const fine = parseInt(fineMatch[1].replace(/[  ]/g, ''));
+        if (fine >= 1000000) return {
+          level: 'red',
+          quote: q,
+          why: `Штраф за разглашение ${fine.toLocaleString('ru-RU')} ₽ — чрезмерен. Суды снижают такие штрафы как несоразмерные последствиям нарушения. Кроме того, по <strong>ст. 1472 ГК РФ</strong> взыскиваются реальные убытки и упущенная выгода, а не "штрафы за факт".`,
+          fix: `Заменить на: "В случае разглашения конфиденциальной информации виновная Сторона возмещает другой Стороне причинённые убытки в полном объёме согласно ст. 15, 1472 ГК РФ."`
+        };
+      }
+      if (eternal) return {
+        level: 'yellow',
+        quote: q,
+        why: `Бессрочное обязательство о конфиденциальности — нестандартно. Обычная практика: 3–5 лет после прекращения договора. Бессрочное обязательство сложно контролировать и доказывать в суде.`,
+        fix: `Указать конкретный срок: "Обязательства о конфиденциальности сохраняются в течение 3 (трёх) лет с момента прекращения настоящего договора."`
+      };
+      return { level: 'green', quote: q, why: 'Условия о конфиденциальности в разумных пределах.' };
+    }
+  },
+  {
+    id: 'governing-law',
+    name: 'Применимое право',
+    find: (text, ctx) => {
+      const m = text.match(/(применимое\s+право|регулируется\s+(?:законодательством|правом))[^.]{0,150}/i);
+      if (!m) return null;
+      const q = m[0];
+      const foreign = !/российск|россии|рф/i.test(q);
+      if (foreign) return {
+        level: 'red',
+        quote: q,
+        why: `Применимое право — не российское. Для российских контрагентов это создаёт неопределённость и расходы на иностранных юристов.`,
+        fix: `Установить: "Настоящий договор регулируется законодательством Российской Федерации."`
+      };
+      return { level: 'green', quote: q, why: 'Применимое право — РФ.' };
+    }
+  },
+  {
+    id: 'delivery-terms',
+    name: 'Сроки исполнения',
+    find: (text, ctx) => {
+      const m = text.match(/(срок[аи]?\s+(?:поставк|выполнен|оказани|исполнен))[^.]{0,200}/i);
+      if (!m) return null;
+      const q = m[0];
+      const vague = /(в\s+разумный\s+срок|по\s+мере\s+возможности|при\s+наличии)/i.test(q);
+      if (vague) return {
+        level: 'red',
+        quote: q,
+        why: `Размытая формулировка сроков. "Разумный срок" по <strong>ст. 314 ГК РФ</strong> определяется судом — и поставщик может затянуть исполнение без формального нарушения договора.`,
+        fix: `Установить конкретный срок: "Поставка осуществляется в течение 10 (десяти) рабочих дней с момента поступления оплаты на расчётный счёт Поставщика."`
+      };
+      return { level: 'green', quote: q, why: 'Сроки указаны конкретно.' };
+    }
+  },
+  {
+    id: 'anti-corruption',
+    name: 'Антикоррупционная оговорка',
+    find: (text, ctx) => {
+      const m = text.match(/(антикоррупц|противодействи[еи]\s+коррупц|комплаенс)[^.]{0,150}/i);
+      if (m) return { level: 'green', quote: m[0], why: 'Антикоррупционная оговорка присутствует — соответствует требованиям ст. 13.3 ФЗ № 273-ФЗ.' };
+      // Для сумм > 5 млн — рекомендуется иметь
+      if (ctx.sum && /5|50/.test(ctx.sum)) return {
+        level: 'yellow',
+        quote: '(оговорка отсутствует)',
+        why: `Для сделок свыше 5 млн ₽ рекомендуется включать антикоррупционную оговорку. Это требование <strong>ст. 13.3 ФЗ № 273-ФЗ "О противодействии коррупции"</strong>.`,
+        fix: `Добавить раздел: "Стороны подтверждают, что не предлагают и не получают незаконных вознаграждений. В случае выявления коррупционных нарушений Сторона вправе расторгнуть договор в одностороннем порядке с возмещением убытков."`
+      };
+      return null;
+    }
+  },
+  {
+    id: 'subject',
+    name: 'Предмет договора',
+    find: (text, ctx) => {
+      const m = text.match(/предмет\s+договора[^.]{0,400}/i);
+      if (!m) return null;
+      const q = m[0];
+      // ищем конкретику
+      const hasSpec = /(спецификаци|приложени[еи]|техническ.*задани|количеств|ассортимент)/i.test(q);
+      if (!hasSpec) return {
+        level: 'yellow',
+        quote: q,
+        why: `Предмет договора без отсылки к спецификации/ТЗ/приложению. По <strong>ст. 432 ГК РФ</strong> предмет — существенное условие; без конкретики договор может быть признан незаключённым.`,
+        fix: `Добавить: "Конкретный перечень, количество, ассортимент и характеристики товара / работ согласовываются Сторонами в Спецификации (Приложение № 1), являющейся неотъемлемой частью настоящего договора."`
+      };
+      return { level: 'green', quote: q, why: 'Предмет договора согласован с отсылкой к спецификации/приложению.' };
+    }
+  },
+];
+
+// =============== УТИЛИТЫ ===============
+function extractContext(text, idx, len) {
+  // вырезаем предложение вокруг находки
+  let start = idx;
+  while (start > 0 && !/[.!?\n]/.test(text[start - 1])) start--;
+  let end = idx + len;
+  while (end < text.length && !/[.!?\n]/.test(text[end])) end++;
+  if (end < text.length) end++;
+  return text.substring(start, end).trim().replace(/\s+/g, ' ').substring(0, 350);
+}
+
+function analyze(text, ctx) {
+  const results = CHECKS.map(check => {
+    const found = check.find(text, ctx);
+    if (!found) return null;
+    return { ...found, checkName: check.name, checkId: check.id };
+  }).filter(r => r !== null);
+
+  const reds = results.filter(r => r.level === 'red');
+  const yellows = results.filter(r => r.level === 'yellow');
+  const greens = results.filter(r => r.level === 'green');
+
+  // Общий вердикт
+  let verdict = 'green';
+  if (reds.length >= 1) verdict = 'red';
+  else if (yellows.length >= 2) verdict = 'yellow';
+
+  return { results, reds, yellows, greens, verdict };
+}
+
+// =============== РЕНДЕР ===============
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderRisk(r) {
+  const fixBlock = r.fix ? `
+    <div class="risk-fix">
+      <div class="risk-fix-label">✏️ Готовая переформулировка
+        <button class="copy-btn-inline" onclick="navigator.clipboard.writeText(this.dataset.txt); this.textContent='✓ скопировано'" data-txt="${escapeHtml(r.fix)}">📋 копировать</button>
+      </div>
+      ${escapeHtml(r.fix)}
+    </div>` : '';
+  const light = r.level === 'red' ? '🔴' : r.level === 'yellow' ? '🟡' : '🟢';
+  return `
+    <div class="risk-item ${r.level}">
+      <div class="risk-head">
+        <div class="risk-title">${r.checkName}</div>
+        <div class="risk-light">${light}</div>
+      </div>
+      <div class="risk-quote">«${escapeHtml(r.quote)}»</div>
+      <div class="risk-norm">${r.why}</div>
+      ${fixBlock}
+    </div>
+  `;
+}
+
+function render(result, ctx) {
+  document.getElementById('results').classList.add('show');
+
+  // Вердикт
+  const verdictMap = {
+    red: { emoji: '🔴', title: 'Не подписывать без правок', desc: `Найдены критичные риски. Подписание в текущем виде создаёт серьёзные правовые и финансовые угрозы для роли «${ctx.role}». Обязательно подготовить протокол разногласий.` },
+    yellow: { emoji: '🟡', title: 'Подписывать с протоколом разногласий', desc: `Договор в целом рабочий, но требует доработки нескольких пунктов. Без переговоров есть существенные риски — лучше согласовать поправки.` },
+    green: { emoji: '🟢', title: 'Можно подписывать', desc: `Существенных рисков не выявлено. Договор сбалансирован.` }
+  };
+  const v = verdictMap[result.verdict];
+  document.getElementById('verdict').innerHTML = `
+    <div class="verdict-card ${result.verdict}">
+      <div class="verdict-big">${v.emoji}</div>
+      <div class="verdict-title">${v.title}</div>
+      <div class="verdict-desc">${v.desc}</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num red">${result.reds.length}</div><div class="stat-lbl">🔴 критичных</div></div>
+        <div class="stat"><div class="stat-num yellow">${result.yellows.length}</div><div class="stat-lbl">🟡 существенных</div></div>
+        <div class="stat"><div class="stat-num green">${result.greens.length}</div><div class="stat-lbl">🟢 в норме</div></div>
+        <div class="stat"><div class="stat-num">${result.results.length}/12</div><div class="stat-lbl">проверено пунктов</div></div>
+      </div>
+    </div>
+  `;
+
+  // Красные
+  document.getElementById('redRisks').innerHTML = result.reds.length
+    ? result.reds.map(renderRisk).join('')
+    : '<div class="empty-state">Критичных рисков не найдено ✓</div>';
+
+  // Жёлтые
+  document.getElementById('yellowRisks').innerHTML = result.yellows.length
+    ? result.yellows.map(renderRisk).join('')
+    : '<div class="empty-state">Существенных замечаний нет ✓</div>';
+
+  // Зелёные
+  document.getElementById('greenChecks').innerHTML = result.greens.length
+    ? result.greens.map(g => `<div class="risk-item green"><strong>✓ ${g.checkName}</strong><div class="risk-norm">${g.why}</div></div>`).join('')
+    : '<div class="empty-state">—</div>';
+
+  // Топ-3
+  const top = [...result.reds, ...result.yellows].slice(0, 3);
+  document.getElementById('top3').innerHTML = top.length
+    ? `<div class="top3"><ol>${top.map(t => `<li><strong>${t.checkName}</strong> — ${t.fix ? 'предложить переформулировку' : 'обсудить'}</li>`).join('')}</ol></div>`
+    : '<div class="empty-state">Переговоры не требуются — договор сбалансирован.</div>';
+
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+// =============== UI EVENTS ===============
+document.querySelectorAll('#roleGrp .role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#roleGrp .role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+document.getElementById('sampleBtn').addEventListener('click', () => {
+  document.getElementById('input').value =
+`ДОГОВОР ПОСТАВКИ № 142-26
+г. Москва                                                              15 марта 2026 г.
+
+1. ПРЕДМЕТ ДОГОВОРА
+1.1. Поставщик обязуется передать товар в собственность Покупателя, а Покупатель — принять и оплатить товар.
+
+2. ЦЕНА И ПОРЯДОК РАСЧЁТОВ
+2.1. Общая стоимость товара составляет 3 200 000 рублей.
+2.2. Поставщик вправе в одностороннем порядке корректировать цену товара при изменении конъюнктуры рынка, уведомив Покупателя за 5 дней.
+
+3. СРОКИ ПОСТАВКИ
+3.1. Поставка осуществляется в разумный срок после поступления оплаты.
+
+4. ПРИЁМКА
+4.1. Покупатель обязан направить претензии по качеству в течение 2 дней с момента получения товара. Если претензии не направлены, товар считается принятым без замечаний.
+
+7. ОТВЕТСТВЕННОСТЬ СТОРОН
+7.3. За нарушение сроков оплаты Покупатель уплачивает неустойку в размере 1% от суммы договора за каждый день просрочки.
+7.4. Зачёт встречных требований не допускается.
+
+9. ФОРС-МАЖОР
+9.1. Стороны освобождаются от ответственности при наступлении обстоятельств непреодолимой силы.
+
+11. КОНФИДЕНЦИАЛЬНОСТЬ
+11.1. Стороны обязуются не разглашать условия настоящего договора. Обязательство является бессрочным. За разглашение виновная сторона уплачивает штраф 5 000 000 рублей.
+
+12. РАЗРЕШЕНИЕ СПОРОВ
+12.2. Споры рассматриваются в Арбитражном суде Приморского края.
+
+13. ОДНОСТОРОННИЙ ОТКАЗ
+13.1. Поставщик вправе в одностороннем порядке отказаться от исполнения договора без указания причин.`;
+});
+
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  const text = document.getElementById('input').value.trim();
+  if (!text) { alert('Сначала вставьте текст договора'); return; }
+  const ctx = {
+    role: document.querySelector('#roleGrp .role-btn.active').dataset.role,
+    type: document.getElementById('typeSel').value,
+    sum: document.getElementById('sumSel').value,
+  };
+  const result = analyze(text, ctx);
+  render(result, ctx);
+});
+</script>
+</body>
+</html>

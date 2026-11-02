@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Анкета риск-профиля</title>
+<meta name="description" content="Анкета риск-профиля: 17 вопросов примерно за пять минут, на выходе — инвестиционный профиль и финансовая цель.">
+    <link rel="canonical" href="https://stapelweb.ru/anketa.html">
+
+  <meta property="og:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+  <meta property="og:image:width" content="1500">
+  <meta property="og:image:height" content="785">
+  <meta property="og:url" content="https://stapelweb.ru/anketa.html">
+  <meta property="og:site_name" content="СТАПЕЛЬ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://stapelweb.ru/assets/og-cover.jpg?v=2026-10-14">
+</head>
+<body>
+<!-- ════════════════════════════════════════════════════════════════
+     АНКЕТА: РИСК-ПРОФИЛЬ + ФИНАНСОВАЯ ЦЕЛЬ
+     Для вставки в GetCourse: скопируйте всё от <style> до конца
+     <script> вместе с <div class="pfq-app">. Стили и скрипт изолированы
+     внутри .pfq-app и не влияют на остальную страницу.
+     ════════════════════════════════════════════════════════════════ -->
+<style>
+  .pfq-app{
+    --q-ink:#1c2333;
+    --q-navy:#0D1F3C;
+    --q-gold:#C9A84C;
+    --q-gold-soft:#e7d9ad;
+    --q-paper:#FAF9F5;
+    --q-card:#FFFFFF;
+    --q-muted:#6b7280;
+    --q-line:#e6e2d8;
+    --q-green:#2e7d4f;
+    --q-yellow:#b07c1f;
+    --q-red:#b03a3a;
+    box-sizing:border-box;
+    background:var(--q-paper);
+    color:var(--q-ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:16px;line-height:1.6;
+    margin:0 auto;max-width:760px;
+    padding:48px 24px 64px;border-radius:6px;
+  }
+  .pfq-app *,.pfq-app *::before,.pfq-app *::after{box-sizing:inherit;margin:0;padding:0;}
+
+  .pfq-app .pfq-eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--q-gold);font-weight:600;margin-bottom:12px;}
+  .pfq-app h1.pfq-title{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:34px;line-height:1.2;color:var(--q-navy);margin-bottom:12px;}
+  .pfq-app p.pfq-lead{font-size:16.5px;color:#3a4154;max-width:600px;}
+  .pfq-app .pfq-muted{color:var(--q-muted);font-size:13.5px;}
+
+  /* прогресс */
+  .pfq-app .pfq-progress{margin:32px 0 8px;}
+  .pfq-app .pfq-progress-labels{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--q-muted);margin-bottom:8px;}
+  .pfq-app .pfq-progress-labels b{color:var(--q-navy);font-weight:600;}
+  .pfq-app .pfq-bar{height:2px;background:var(--q-line);border-radius:1px;overflow:hidden;}
+  .pfq-app .pfq-bar i{display:block;height:100%;width:0;background:var(--q-gold);transition:width .4s ease;}
+
+  /* шаги */
+  .pfq-app .pfq-step{display:none;padding-top:28px;}
+  .pfq-app .pfq-step.pfq-active{display:block;}
+  .pfq-app h2.pfq-h{font-family:Georgia,serif;font-weight:400;font-size:24px;color:var(--q-navy);margin-bottom:4px;}
+  .pfq-app .pfq-h-sub{font-size:14.5px;color:var(--q-muted);margin-bottom:24px;}
+
+  /* вопрос */
+  .pfq-app .pfq-q{background:var(--q-card);border:1px solid var(--q-line);border-radius:4px;padding:22px 24px;margin-bottom:14px;}
+  .pfq-app .pfq-q.pfq-missed{border-color:var(--q-red);}
+  .pfq-app .pfq-q-num{font-family:Georgia,serif;font-size:13px;color:var(--q-gold);margin-bottom:4px;}
+  .pfq-app .pfq-q-text{font-size:16.5px;font-weight:600;color:var(--q-navy);margin-bottom:14px;line-height:1.45;}
+
+  .pfq-app .pfq-opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1px solid var(--q-line);border-radius:4px;cursor:pointer;margin-bottom:8px;transition:border-color .15s,background .15s;font-size:15px;color:#3f4658;}
+  .pfq-app .pfq-opt:hover{border-color:var(--q-gold-soft);}
+  .pfq-app .pfq-opt input{margin-top:4px;accent-color:var(--q-gold);flex:0 0 auto;}
+  .pfq-app .pfq-opt.pfq-sel{border-color:var(--q-gold);background:#fcfaf3;color:var(--q-navy);}
+
+  .pfq-app .pfq-input,.pfq-app select.pfq-input{width:100%;border:1px solid var(--q-line);border-radius:4px;padding:11px 14px;font-size:16px;font-family:inherit;color:var(--q-ink);background:#fff;}
+  .pfq-app .pfq-input:focus{outline:none;border-color:var(--q-gold);}
+  .pfq-app .pfq-unit{font-size:13px;color:var(--q-muted);margin-top:6px;}
+
+  /* кнопки */
+  .pfq-app .pfq-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:28px;}
+  .pfq-app .pfq-btn{display:inline-block;border:none;cursor:pointer;font-family:inherit;font-size:15px;letter-spacing:.04em;padding:13px 30px;border-radius:4px;background:var(--q-navy);color:#fff;transition:opacity .15s;}
+  .pfq-app .pfq-btn:hover{opacity:.92;}
+  .pfq-app .pfq-btn-ghost{background:transparent;color:var(--q-muted);border:1px solid var(--q-line);}
+  .pfq-app .pfq-btn-gold{background:var(--q-gold);color:var(--q-navy);font-weight:600;}
+  .pfq-app .pfq-err{color:var(--q-red);font-size:13.5px;margin-top:12px;display:none;}
+
+  /* результат */
+  .pfq-app .pfq-res-card{background:var(--q-navy);color:#f4f1e8;border-radius:4px;padding:34px 32px;margin-bottom:16px;}
+  .pfq-app .pfq-res-card .pfq-res-kind{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--q-gold);margin-bottom:10px;}
+  .pfq-app .pfq-res-card h3{font-family:Georgia,serif;font-weight:400;font-size:28px;color:#fff;margin-bottom:8px;}
+  .pfq-app .pfq-res-card p{font-size:14.5px;color:#c4c9d6;max-width:560px;}
+  .pfq-app .pfq-res-meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#aab1c2;}
+  .pfq-app .pfq-res-meta b{color:#fff;font-weight:600;}
+
+  .pfq-app .pfq-alloc{background:var(--q-card);border:1px solid var(--q-line);border-radius:4px;padding:26px 28px;margin-bottom:16px;}
+  .pfq-app .pfq-alloc h4{font-family:Georgia,serif;font-weight:400;font-size:19px;color:var(--q-navy);margin-bottom:18px;}
+  .pfq-app .pfq-a-row{margin-bottom:14px;}
+  .pfq-app .pfq-a-top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;}
+  .pfq-app .pfq-a-top b{color:var(--q-navy);}
+  .pfq-app .pfq-a-track{height:8px;background:#f0ede3;border-radius:4px;overflow:hidden;}
+  .pfq-app .pfq-a-fill{height:100%;border-radius:4px;background:var(--q-gold);}
+  .pfq-app .pfq-a-fill.pfq-c2{background:#0D1F3C;}
+  .pfq-app .pfq-a-fill.pfq-c3{background:#8a9bb8;}
+  .pfq-app .pfq-a-fill.pfq-c4{background:#d8cba0;}
+
+  .pfq-app .pfq-goal{border-left:2px solid var(--q-gold);background:var(--q-card);border-top:1px solid var(--q-line);border-right:1px solid var(--q-line);border-bottom:1px solid var(--q-line);border-radius:0 4px 4px 0;padding:22px 26px;margin-bottom:16px;}
+  .pfq-app .pfq-goal h4{font-family:Georgia,serif;font-weight:400;font-size:19px;color:var(--q-navy);margin-bottom:8px;}
+  .pfq-app .pfq-verdict{display:inline-block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:5px 12px;border-radius:3px;margin-bottom:10px;}
+  .pfq-app .pfq-v-ok{background:#e8f3ec;color:var(--q-green);}
+  .pfq-app .pfq-v-mid{background:#f7efdc;color:var(--q-yellow);}
+  .pfq-app .pfq-v-bad{background:#f7e4e4;color:var(--q-red);}
+  .pfq-app .pfq-goal p{font-size:14.5px;color:#3f4658;}
+  .pfq-app .pfq-goal p + p{margin-top:6px;}
+
+  .pfq-app .pfq-copy-wrap{text-align:center;margin-top:26px;}
+  .pfq-app .pfq-copied{display:none;margin-top:10px;font-size:13.5px;color:var(--q-green);}
+  .pfq-app textarea.pfq-json{position:absolute;left:-9999px;top:0;height:1px;width:1px;}
+  .pfq-app .pfq-note{margin-top:32px;padding:18px 22px;background:#f3f0e7;border-radius:4px;font-size:12.5px;color:#6a6d62;line-height:1.6;}
+
+  @media (max-width:560px){
+    .pfq-app{padding:36px 16px 48px;}
+    .pfq-app h1.pfq-title{font-size:27px;}
+    .pfq-app .pfq-res-card{padding:26px 22px;}
+    .pfq-app .pfq-btn{padding:12px 22px;}
+  }
+</style>
+
+<div class="pfq-app" id="pfqApp">
+
+  <div class="pfq-eyebrow">Финсоветник · Шаг I</div>
+  <h1 class="pfq-title">Анкета: риск-профиль <br>и финансовая цель</h1>
+  <p class="pfq-lead">17 вопросов — около пяти минут. В конце вы узнаете свой инвестиционный профиль, рекомендуемую структуру портфеля и насколько достижима ваша цель. Данные никуда не отправляются: всё считается прямо на этой странице.</p>
+
+  <div class="pfq-progress">
+    <div class="pfq-progress-labels">
+      <span id="pfqStepLabel"><b>Блок 1 из 3</b> · О вас</span>
+      <span id="pfqPct">0%</span>
+    </div>
+    <div class="pfq-bar"><i id="pfqBarFill"></i></div>
+  </div>
+
+  <!-- ───────── БЛОК 1: О ВАС ───────── -->
+  <div class="pfq-step pfq-active" data-step="1">
+    <h2 class="pfq-h">О вас</h2>
+    <div class="pfq-h-sub">Возраст, доход и финансовая устойчивость.</div>
+
+    <div class="pfq-q" data-q="age" data-scored="1">
+      <div class="pfq-q-num">Вопрос 1 / 17</div>
+      <div class="pfq-q-text">Ваш возраст</div>
+      <label class="pfq-opt"><input type="radio" name="age" value="4" data-label="До 30 лет"><span>До 30 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="age" value="3" data-label="30–45 лет"><span>30–45 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="age" value="2" data-label="45–60 лет"><span>45–60 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="age" value="1" data-label="Старше 60 лет"><span>Старше 60 лет</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="income" data-scored="1">
+      <div class="pfq-q-num">Вопрос 2 / 17</div>
+      <div class="pfq-q-text">Насколько стабилен ваш доход?</div>
+      <label class="pfq-opt"><input type="radio" name="income" value="4" data-label="Очень стабильный, растёт"><span>Очень стабильный и, скорее всего, будет расти</span></label>
+      <label class="pfq-opt"><input type="radio" name="income" value="3" data-label="Стабильный"><span>Стабильный — без резких изменений</span></label>
+      <label class="pfq-opt"><input type="radio" name="income" value="2" data-label="Колеблется"><span>Колеблется от месяца к месяцу</span></label>
+      <label class="pfq-opt"><input type="radio" name="income" value="1" data-label="Нестабильный"><span>Нестабильный или может прекратиться</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="cushion" data-scored="1">
+      <div class="pfq-q-num">Вопрос 3 / 17</div>
+      <div class="pfq-q-text">Подушка безопасности: на сколько месяцев расходов хватит ваших резервов вне инвестиций?</div>
+      <label class="pfq-opt"><input type="radio" name="cushion" value="4" data-label="Более 12 месяцев"><span>Более 12 месяцев</span></label>
+      <label class="pfq-opt"><input type="radio" name="cushion" value="3" data-label="6–12 месяцев"><span>6–12 месяцев</span></label>
+      <label class="pfq-opt"><input type="radio" name="cushion" value="2" data-label="3–6 месяцев"><span>3–6 месяцев</span></label>
+      <label class="pfq-opt"><input type="radio" name="cushion" value="1" data-label="Менее 3 месяцев"><span>Менее 3 месяцев или подушки нет</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="share" data-scored="1">
+      <div class="pfq-q-num">Вопрос 4 / 17</div>
+      <div class="pfq-q-text">Какую долю всех ваших сбережений составляют (или составят) инвестиции?</div>
+      <label class="pfq-opt"><input type="radio" name="share" value="4" data-label="Менее 25%"><span>Менее 25% — основная часть в надёжных резервах</span></label>
+      <label class="pfq-opt"><input type="radio" name="share" value="3" data-label="25–50%"><span>25–50%</span></label>
+      <label class="pfq-opt"><input type="radio" name="share" value="2" data-label="50–75%"><span>50–75%</span></label>
+      <label class="pfq-opt"><input type="radio" name="share" value="1" data-label="Более 75%"><span>Более 75% — почти всё, что у меня есть</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="obligations" data-scored="1">
+      <div class="pfq-q-num">Вопрос 5 / 17</div>
+      <div class="pfq-q-text">Финансовые обязательства: кредиты, ипотека, иждивенцы</div>
+      <label class="pfq-opt"><input type="radio" name="obligations" value="4" data-label="Нет обязательств"><span>Обязательств нет</span></label>
+      <label class="pfq-opt"><input type="radio" name="obligations" value="3" data-label="Небольшие"><span>Небольшие — занимают до 20% дохода</span></label>
+      <label class="pfq-opt"><input type="radio" name="obligations" value="2" data-label="Заметные"><span>Заметные — 20–40% дохода</span></label>
+      <label class="pfq-opt"><input type="radio" name="obligations" value="1" data-label="Значительные"><span>Значительные — более 40% дохода</span></label>
+    </div>
+
+    <div class="pfq-err" id="pfqErr1">Пожалуйста, ответьте на все вопросы блока — пропущенные подсвечены.</div>
+    <div class="pfq-nav">
+      <span></span>
+      <button class="pfq-btn" data-next="2">Далее: цель →</button>
+    </div>
+  </div>
+
+  <!-- ───────── БЛОК 2: ЦЕЛЬ ───────── -->
+  <div class="pfq-step" data-step="2">
+    <h2 class="pfq-h">Ваша цель</h2>
+    <div class="pfq-h-sub">Зачем вы инвестируете — от этого зависит и структура портфеля, и вердикт о достижимости.</div>
+
+    <div class="pfq-q" data-q="goalType">
+      <div class="pfq-q-num">Вопрос 6 / 17</div>
+      <div class="pfq-q-text">Тип цели</div>
+      <select class="pfq-input" id="pfqGoalType">
+        <option value="">— выберите —</option>
+        <option>Крупная покупка / недвижимость</option>
+        <option>Пассивный доход</option>
+        <option>Капитал к определённому сроку</option>
+        <option>Образование детей</option>
+        <option>Пенсионные накопления</option>
+        <option>Просто приумножить капитал</option>
+      </select>
+    </div>
+
+    <div class="pfq-q" data-q="goalAmount">
+      <div class="pfq-q-num">Вопрос 7 / 17</div>
+      <div class="pfq-q-text">Целевая сумма</div>
+      <input class="pfq-input" id="pfqGoalAmount" type="number" min="0" step="10000" placeholder="Например, 12 000 000">
+      <div class="pfq-unit">в рублях</div>
+    </div>
+
+    <div class="pfq-q" data-q="goalYears" data-scored="1">
+      <div class="pfq-q-num">Вопрос 8 / 17</div>
+      <div class="pfq-q-text">Через сколько лет нужна эта сумма?</div>
+      <label class="pfq-opt"><input type="radio" name="goalYears" value="4" data-label="Более 10 лет" data-years="12"><span>Более 10 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="goalYears" value="3" data-label="5–10 лет" data-years="7"><span>5–10 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="goalYears" value="2" data-label="3–5 лет" data-years="4"><span>3–5 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="goalYears" value="1" data-label="Менее 3 лет" data-years="2"><span>Менее 3 лет</span></label>
+      <div style="margin-top:12px;">
+        <input class="pfq-input" id="pfqYearsExact" type="number" min="1" max="40" step="1" placeholder="Точный срок в годах (по желанию)">
+      </div>
+    </div>
+
+    <div class="pfq-q" data-q="capital">
+      <div class="pfq-q-num">Вопрос 9 / 17</div>
+      <div class="pfq-q-text">Текущий инвестиционный капитал</div>
+      <input class="pfq-input" id="pfqCapital" type="number" min="0" step="10000" placeholder="Например, 800 000">
+      <div class="pfq-unit">в рублях; если начинаете с нуля — укажите 0</div>
+    </div>
+
+    <div class="pfq-q" data-q="monthly">
+      <div class="pfq-q-num">Вопрос 10 / 17</div>
+      <div class="pfq-q-text">Сколько готовы пополнять ежемесячно?</div>
+      <input class="pfq-input" id="pfqMonthly" type="number" min="0" step="1000" placeholder="Например, 60 000">
+      <div class="pfq-unit">в рублях; если пополнений не будет — укажите 0</div>
+    </div>
+
+    <div class="pfq-err" id="pfqErr2">Заполните все поля блока: тип цели, сумму, срок, капитал и пополнения.</div>
+    <div class="pfq-nav">
+      <button class="pfq-btn pfq-btn-ghost" data-prev="1">← Назад</button>
+      <button class="pfq-btn" data-next="3">Далее: отношение к риску →</button>
+    </div>
+  </div>
+
+  <!-- ───────── БЛОК 3: РИСК ───────── -->
+  <div class="pfq-step" data-step="3">
+    <h2 class="pfq-h">Отношение к риску</h2>
+    <div class="pfq-h-sub">Честные ответы важнее «правильных» — профиль должен отражать вас, а не идеального инвестора.</div>
+
+    <div class="pfq-q" data-q="experience" data-scored="1">
+      <div class="pfq-q-num">Вопрос 11 / 17</div>
+      <div class="pfq-q-text">Ваш опыт инвестирования</div>
+      <label class="pfq-opt"><input type="radio" name="experience" value="4" data-label="Более 5 лет"><span>Более 5 лет, проходил(а) кризисы</span></label>
+      <label class="pfq-opt"><input type="radio" name="experience" value="3" data-label="1–5 лет"><span>1–5 лет</span></label>
+      <label class="pfq-opt"><input type="radio" name="experience" value="2" data-label="Менее года"><span>Менее года</span></label>
+      <label class="pfq-opt"><input type="radio" name="experience" value="1" data-label="Опыта нет"><span>Опыта нет — только планирую начать</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="knowledge" data-scored="1">
+      <div class="pfq-q-num">Вопрос 12 / 17</div>
+      <div class="pfq-q-text">Насколько вы разбираетесь в инструментах: акции, облигации, фонды?</div>
+      <label class="pfq-opt"><input type="radio" name="knowledge" value="4" data-label="Хорошо разбираюсь"><span>Хорошо разбираюсь, читаю отчётность</span></label>
+      <label class="pfq-opt"><input type="radio" name="knowledge" value="3" data-label="Понимаю основное"><span>Понимаю, чем они отличаются и какие риски несут</span></label>
+      <label class="pfq-opt"><input type="radio" name="knowledge" value="2" data-label="Общее представление"><span>Имею общее представление</span></label>
+      <label class="pfq-opt"><input type="radio" name="knowledge" value="1" data-label="Не разбираюсь"><span>Почти не разбираюсь</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="drawdownReaction" data-scored="1">
+      <div class="pfq-q-num">Вопрос 13 / 17</div>
+      <div class="pfq-q-text">Ваш портфель упал на 25% за месяц. Что вы сделаете?</div>
+      <label class="pfq-opt"><input type="radio" name="drawdownReaction" value="4" data-label="Докуплю"><span>Докуплю — цены стали привлекательнее</span></label>
+      <label class="pfq-opt"><input type="radio" name="drawdownReaction" value="3" data-label="Буду держать"><span>Ничего — буду держать по плану</span></label>
+      <label class="pfq-opt"><input type="radio" name="drawdownReaction" value="2" data-label="Продам часть"><span>Продам часть, чтобы снизить риск</span></label>
+      <label class="pfq-opt"><input type="radio" name="drawdownReaction" value="1" data-label="Продам всё"><span>Продам всё — не выдержу таких потерь</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="priority" data-scored="1">
+      <div class="pfq-q-num">Вопрос 14 / 17</div>
+      <div class="pfq-q-text">Что для вас важнее?</div>
+      <label class="pfq-opt"><input type="radio" name="priority" value="4" data-label="Максимальный рост"><span>Максимальный рост капитала, даже с сильными колебаниями</span></label>
+      <label class="pfq-opt"><input type="radio" name="priority" value="3" data-label="Рост с умеренными просадками"><span>Заметный рост при умеренных просадках</span></label>
+      <label class="pfq-opt"><input type="radio" name="priority" value="2" data-label="Баланс"><span>Баланс: немного выше депозита, но спокойно</span></label>
+      <label class="pfq-opt"><input type="radio" name="priority" value="1" data-label="Сохранность"><span>Главное — сохранить то, что есть</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="maxDrawdown" data-scored="1">
+      <div class="pfq-q-num">Вопрос 15 / 17</div>
+      <div class="pfq-q-text">Какую временную просадку портфеля вы готовы спокойно пересидеть?</div>
+      <label class="pfq-opt"><input type="radio" name="maxDrawdown" value="4" data-label="Более 30%"><span>Более 30%</span></label>
+      <label class="pfq-opt"><input type="radio" name="maxDrawdown" value="3" data-label="15–30%"><span>15–30%</span></label>
+      <label class="pfq-opt"><input type="radio" name="maxDrawdown" value="2" data-label="5–15%"><span>5–15%</span></label>
+      <label class="pfq-opt"><input type="radio" name="maxDrawdown" value="1" data-label="До 5%"><span>До 5% — просадки переношу тяжело</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="lossTolerance" data-scored="1">
+      <div class="pfq-q-num">Вопрос 16 / 17</div>
+      <div class="pfq-q-text">Потеря какой части вложений не изменит ваши жизненные планы?</div>
+      <label class="pfq-opt"><input type="radio" name="lossTolerance" value="4" data-label="До 30–40%"><span>Даже 30–40% — это деньги «вдолгую»</span></label>
+      <label class="pfq-opt"><input type="radio" name="lossTolerance" value="3" data-label="До 20%"><span>До 20%</span></label>
+      <label class="pfq-opt"><input type="radio" name="lossTolerance" value="2" data-label="До 10%"><span>До 10%</span></label>
+      <label class="pfq-opt"><input type="radio" name="lossTolerance" value="1" data-label="Потери недопустимы"><span>Любая потеря болезненна — эти деньги мне нужны</span></label>
+    </div>
+
+    <div class="pfq-q" data-q="choice" data-scored="1">
+      <div class="pfq-q-num">Вопрос 17 / 17</div>
+      <div class="pfq-q-text">Какой вариант вложения на год вам ближе?</div>
+      <label class="pfq-opt"><input type="radio" name="choice" value="4" data-label="Шанс +40% / риск −20%"><span>Шанс заработать +40%, но с риском получить −20%</span></label>
+      <label class="pfq-opt"><input type="radio" name="choice" value="3" data-label="Шанс +25% / риск −10%"><span>Шанс +25% с риском −10%</span></label>
+      <label class="pfq-opt"><input type="radio" name="choice" value="2" data-label="+15% с небольшим риском"><span>Около +15% с небольшим риском</span></label>
+      <label class="pfq-opt"><input type="radio" name="choice" value="1" data-label="Гарантированные ~12%"><span>Гарантированные ~12% без сюрпризов</span></label>
+    </div>
+
+    <div class="pfq-err" id="pfqErr3">Пожалуйста, ответьте на все вопросы блока — пропущенные подсвечены.</div>
+    <div class="pfq-nav">
+      <button class="pfq-btn pfq-btn-ghost" data-prev="2">← Назад</button>
+      <button class="pfq-btn pfq-btn-gold" id="pfqFinish">Показать результат</button>
+    </div>
+  </div>
+
+  <!-- ───────── РЕЗУЛЬТАТ ───────── -->
+  <div class="pfq-step" data-step="4">
+    <h2 class="pfq-h" style="margin-bottom:20px;">Ваш результат</h2>
+
+    <div class="pfq-res-card">
+      <div class="pfq-res-kind">Риск-профиль</div>
+      <h3 id="pfqProfileName">—</h3>
+      <p id="pfqProfileDesc">—</p>
+      <div class="pfq-res-meta">
+        <span>Баллы · <b id="pfqScore">—</b></span>
+        <span>Ожидаемая доходность · <b id="pfqExpReturn">—</b></span>
+        <span>Допустимая просадка · <b id="pfqExpDd">—</b></span>
+      </div>
+    </div>
+
+    <div class="pfq-alloc">
+      <h4>Рекомендуемая структура портфеля</h4>
+      <div class="pfq-a-row"><div class="pfq-a-top"><span>Акции</span><b id="pfqAlStocksV">—</b></div><div class="pfq-a-track"><div class="pfq-a-fill pfq-c2" id="pfqAlStocks"></div></div></div>
+      <div class="pfq-a-row"><div class="pfq-a-top"><span>Облигации</span><b id="pfqAlBondsV">—</b></div><div class="pfq-a-track"><div class="pfq-a-fill" id="pfqAlBonds"></div></div></div>
+      <div class="pfq-a-row"><div class="pfq-a-top"><span>Фонды и золото</span><b id="pfqAlFundsV">—</b></div><div class="pfq-a-track"><div class="pfq-a-fill pfq-c3" id="pfqAlFunds"></div></div></div>
+      <div class="pfq-a-row" style="margin-bottom:0;"><div class="pfq-a-top"><span>Валюта и денежный резерв</span><b id="pfqAlCashV">—</b></div><div class="pfq-a-track"><div class="pfq-a-fill pfq-c4" id="pfqAlCash"></div></div></div>
+    </div>
+
+    <div class="pfq-goal">
+      <h4>Достижимость цели</h4>
+      <span class="pfq-verdict" id="pfqVerdict">—</span>
+      <p id="pfqGoalText">—</p>
+      <p class="pfq-muted" id="pfqGoalHint"></p>
+    </div>
+
+    <div class="pfq-copy-wrap">
+      <button class="pfq-btn pfq-btn-gold" id="pfqCopy">Скопировать данные для Claude</button>
+      <div class="pfq-copied" id="pfqCopied">Скопировано. Вставьте результат в чат с Claude — и он продолжит разбор портфеля.</div>
+      <div class="pfq-muted" style="margin-top:14px;">Кнопка копирует ответы в формате JSON — это шаг I разбора «Финсоветник».</div>
+    </div>
+    <textarea class="pfq-json" id="pfqJson" readonly aria-hidden="true"></textarea>
+
+    <div class="pfq-nav" style="justify-content:flex-start;">
+      <button class="pfq-btn pfq-btn-ghost" data-prev="3">← Изменить ответы</button>
+    </div>
+
+    <div class="pfq-note">
+      Результат анкеты носит образовательный характер и не является индивидуальной инвестиционной рекомендацией. Ожидаемая доходность — ориентир по историческим данным рынка РФ, а не гарантия. Решения вы принимаете самостоятельно.
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var app = document.getElementById('pfqApp');
+  if(!app) return;
+
+  var PROFILES = [
+    { min:13, max:20, name:'Консервативный', expReturn:0.09, dd:'до 5%',
+      alloc:{stocks:10,bonds:65,funds:10,cash:15},
+      desc:'Главная задача — сохранить капитал. Основа портфеля — надёжные облигации (ОФЗ, крупные корпоративные), небольшая доля акций для защиты от инфляции.' },
+    { min:21, max:28, name:'Умеренно-консервативный', expReturn:0.11, dd:'до 10%',
+      alloc:{stocks:25,bonds:55,funds:10,cash:10},
+      desc:'Спокойный рост с акцентом на надёжность: облигационное ядро дополняется умеренной долей акций крупных компаний.' },
+    { min:29, max:36, name:'Сбалансированный', expReturn:0.13, dd:'до 15–20%',
+      alloc:{stocks:40,bonds:40,funds:12,cash:8},
+      desc:'Равновесие роста и защиты: акции и облигации в сопоставимых долях, фонды и золото сглаживают колебания.' },
+    { min:37, max:44, name:'Умеренно-агрессивный', expReturn:0.15, dd:'до 25–30%',
+      alloc:{stocks:60,bonds:25,funds:10,cash:5},
+      desc:'Ставка на рост: преобладают акции, облигации выполняют роль стабилизатора. Требует выдержки в просадки.' },
+    { min:45, max:52, name:'Агрессивный', expReturn:0.17, dd:'более 30%',
+      alloc:{stocks:75,bonds:10,funds:10,cash:5},
+      desc:'Максимальный рост капитала на длинном горизонте. Портфель почти целиком в акциях — просадки глубокие, но горизонт и характер позволяют их пересиживать.' }
+  ];
+
+  var current = 1;
+
+  function show(step){
+    current = step;
+    var steps = app.querySelectorAll('.pfq-step');
+    for(var i=0;i<steps.length;i++){
+      steps[i].className = steps[i].className.replace(' pfq-active','');
+      if(parseInt(steps[i].getAttribute('data-step'),10)===step) steps[i].className += ' pfq-active';
+    }
+    var labels = {1:'<b>Блок 1 из 3</b> · О вас',2:'<b>Блок 2 из 3</b> · Цель',3:'<b>Блок 3 из 3</b> · Отношение к риску',4:'<b>Готово</b> · Результат'};
+    var pct = {1:0,2:33,3:66,4:100};
+    document.getElementById('pfqStepLabel').innerHTML = labels[step];
+    document.getElementById('pfqPct').textContent = pct[step]+'%';
+    document.getElementById('pfqBarFill').style.width = pct[step]+'%';
+    var top = app.getBoundingClientRect().top + (window.pageYOffset||0) - 16;
+    window.scrollTo(0, top>0?top:0);
+  }
+
+  // подсветка выбранных вариантов
+  app.addEventListener('change', function(e){
+    var input = e.target;
+    if(input && input.type==='radio'){
+      var box = input.closest('.pfq-q');
+      var opts = box.querySelectorAll('.pfq-opt');
+      for(var i=0;i<opts.length;i++) opts[i].className = opts[i].className.replace(' pfq-sel','');
+      input.closest('.pfq-opt').className += ' pfq-sel';
+      box.className = box.className.replace(' pfq-missed','');
+    }
+  });
+
+  function validateRadios(step){
+    var ok = true;
+    var qs = app.querySelectorAll('.pfq-step[data-step="'+step+'"] .pfq-q[data-scored]');
+    for(var i=0;i<qs.length;i++){
+      var name = qs[i].querySelector('input[type=radio]');
+      if(!name) continue;
+      var checked = qs[i].querySelector('input[type=radio]:checked');
+      qs[i].className = qs[i].className.replace(' pfq-missed','');
+      if(!checked){ qs[i].className += ' pfq-missed'; ok = false; }
+    }
+    return ok;
+  }
+
+  function validateGoal(){
+    var ok = true;
+    function need(id, cond){
+      var el = document.getElementById(id);
+      var box = el.closest('.pfq-q');
+      box.className = box.className.replace(' pfq-missed','');
+      if(!cond){ box.className += ' pfq-missed'; ok = false; }
+    }
+    need('pfqGoalType', document.getElementById('pfqGoalType').value !== '');
+    need('pfqGoalAmount', parseFloat(document.getElementById('pfqGoalAmount').value) > 0);
+    need('pfqCapital', document.getElementById('pfqCapital').value !== '' && parseFloat(document.getElementById('pfqCapital').value) >= 0);
+    need('pfqMonthly', document.getElementById('pfqMonthly').value !== '' && parseFloat(document.getElementById('pfqMonthly').value) >= 0);
+    if(!validateRadios(2)) ok = false;
+    return ok;
+  }
+
+  // навигация
+  var navBtns = app.querySelectorAll('[data-next],[data-prev]');
+  for(var i=0;i<navBtns.length;i++){
+    navBtns[i].addEventListener('click', function(){
+      var prev = this.getAttribute('data-prev');
+      if(prev){ show(parseInt(prev,10)); return; }
+      var next = parseInt(this.getAttribute('data-next'),10);
+      var err = document.getElementById('pfqErr'+(next-1));
+      var valid = (next===3) ? validateGoal() : validateRadios(next-1);
+      if(!valid){ err.style.display='block'; return; }
+      err.style.display='none';
+      show(next);
+    });
+  }
+
+  function radioInfo(name){
+    var el = app.querySelector('input[name="'+name+'"]:checked');
+    return el ? { score:parseInt(el.value,10), label:el.getAttribute('data-label'), years:el.getAttribute('data-years') } : null;
+  }
+
+  function fmtMoney(v){
+    return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0') + '\u00a0\u20bd';
+  }
+
+  // требуемая годовая доходность (бисекция)
+  function requiredReturn(capital, monthly, years, target){
+    function fv(r){
+      var n = years;
+      if(r === 0) return capital + monthly*12*n;
+      return capital*Math.pow(1+r,n) + monthly*12*(Math.pow(1+r,n)-1)/r;
+    }
+    if(fv(0) >= target) return 0;
+    var lo = 0, hi = 1.0; // до 100% годовых
+    if(fv(hi) < target) return Infinity;
+    for(var i=0;i<60;i++){
+      var mid = (lo+hi)/2;
+      if(fv(mid) >= target) hi = mid; else lo = mid;
+    }
+    return hi;
+  }
+
+  document.getElementById('pfqFinish').addEventListener('click', function(){
+    var err = document.getElementById('pfqErr3');
+    if(!validateRadios(3)){ err.style.display='block'; return; }
+    err.style.display='none';
+
+    var keys = ['age','income','cushion','share','obligations','goalYears','experience','knowledge','drawdownReaction','priority','maxDrawdown','lossTolerance','choice'];
+    var score = 0, answers = {};
+    for(var i=0;i<keys.length;i++){
+      var info = radioInfo(keys[i]);
+      score += info.score;
+      answers[keys[i]] = info.label;
+    }
+
+    var profile = PROFILES[0];
+    for(var p=0;p<PROFILES.length;p++){
+      if(score >= PROFILES[p].min && score <= PROFILES[p].max){ profile = PROFILES[p]; break; }
+    }
+
+    // цель
+    var yearsExact = parseFloat(document.getElementById('pfqYearsExact').value);
+    var yearsInfo = radioInfo('goalYears');
+    var years = (!isNaN(yearsExact) && yearsExact > 0) ? yearsExact : parseFloat(yearsInfo.years);
+    var target = parseFloat(document.getElementById('pfqGoalAmount').value) || 0;
+    var capital = parseFloat(document.getElementById('pfqCapital').value) || 0;
+    var monthly = parseFloat(document.getElementById('pfqMonthly').value) || 0;
+    var goalType = document.getElementById('pfqGoalType').value;
+
+    var req = requiredReturn(capital, monthly, years, target);
+    var exp = profile.expReturn;
+    var verdict, vClass, vText;
+    if(req === Infinity){
+      verdict='Нереалистична'; vClass='pfq-v-bad';
+      vText='При текущих вводных цель недостижима даже при очень высокой доходности. Стоит пересмотреть срок, сумму или пополнения.';
+    } else if(req <= exp){
+      verdict='Достижима'; vClass='pfq-v-ok';
+      vText='Требуемая доходность \u2248 '+(req*100).toFixed(1)+'% годовых — это в пределах ожидаемой для вашего профиля ('+(exp*100).toFixed(0)+'%). Цель выглядит реалистичной при дисциплине пополнений.';
+    } else if(req <= exp + 0.03){
+      verdict='Под вопросом'; vClass='pfq-v-mid';
+      vText='Нужно \u2248 '+(req*100).toFixed(1)+'% годовых при ожидаемых '+(exp*100).toFixed(0)+'% для вашего профиля. Цель на грани: помогут чуть больший срок или пополнения.';
+    } else {
+      verdict='Нереалистична'; vClass='pfq-v-bad';
+      vText='Нужно \u2248 '+(req*100).toFixed(1)+'% годовых — заметно выше ожидаемых '+(exp*100).toFixed(0)+'% для вашего профиля. Рычаги: срок, сумма цели, пополнения, либо для недвижимости — первоначальный взнос + ипотека.';
+    }
+
+    // заполняем результат
+    document.getElementById('pfqProfileName').textContent = profile.name;
+    document.getElementById('pfqProfileDesc').textContent = profile.desc;
+    document.getElementById('pfqScore').textContent = score + ' из 52';
+    document.getElementById('pfqExpReturn').textContent = '~' + (exp*100).toFixed(0) + '% годовых';
+    document.getElementById('pfqExpDd').textContent = profile.dd;
+
+    var a = profile.alloc;
+    function setBar(idFill, idVal, v){
+      document.getElementById(idFill).style.width = v + '%';
+      document.getElementById(idVal).textContent = v + '%';
+    }
+    setBar('pfqAlStocks','pfqAlStocksV',a.stocks);
+    setBar('pfqAlBonds','pfqAlBondsV',a.bonds);
+    setBar('pfqAlFunds','pfqAlFundsV',a.funds);
+    setBar('pfqAlCash','pfqAlCashV',a.cash);
+
+    var vEl = document.getElementById('pfqVerdict');
+    vEl.textContent = verdict;
+    vEl.className = 'pfq-verdict ' + vClass;
+    document.getElementById('pfqGoalText').textContent = vText;
+    document.getElementById('pfqGoalHint').textContent =
+      goalType + ' · ' + fmtMoney(target) + ' через ' + years + ' лет · капитал ' + fmtMoney(capital) + ' · пополнения ' + fmtMoney(monthly) + '/мес';
+
+    // JSON для Claude
+    var data = {
+      source: 'portfolio-review/questionnaire',
+      date: new Date().toISOString().slice(0,10),
+      client: answers,
+      riskProfile: {
+        name: profile.name,
+        score: score,
+        maxScore: 52,
+        expectedReturn: exp,
+        maxDrawdown: profile.dd
+      },
+      goal: {
+        type: goalType,
+        targetAmount: target,
+        years: years,
+        currentCapital: capital,
+        monthlyContribution: monthly,
+        requiredReturn: (req===Infinity ? null : Math.round(req*1000)/1000),
+        verdict: verdict
+      },
+      targetAllocation: a
+    };
+    document.getElementById('pfqJson').value = JSON.stringify(data, null, 2);
+
+    show(4);
+  });
+
+  // копирование
+  document.getElementById('pfqCopy').addEventListener('click', function(){
+    var ta = document.getElementById('pfqJson');
+    var done = function(){
+      var c = document.getElementById('pfqCopied');
+      c.style.display = 'block';
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(done, function(){
+        ta.focus(); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        done();
+      });
+    } else {
+      ta.focus(); ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      done();
+    }
+  });
+})();
+</script>
+</body>
+</html>
