@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Агния Шварц — стихи. Философская лирика, любовь, война</title>
+<meta name="description" content="Стихи Агнии Шварц — поэта из Карелии. Философская и любовная лирика, стихи о войне, пейзажи и стихи для детей. 34 произведения, удобное чтение, избранное и поиск.">
+<meta name="theme-color" content="#12100e">
+<meta name="author" content="Агния Шварц">
+
+<meta property="og:type" content="profile">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Агния Шварц · стихи">
+<meta property="og:title" content="Агния Шварц — стихи">
+<meta property="og:description" content="Философская и любовная лирика, стихи о войне, пейзажи и стихи для детей. 34 произведения — читать онлайн.">
+<meta property="og:image" content="assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2312100e'/%3E%3Ctext x='32' y='43' font-size='30' font-family='Georgia,serif' fill='%23e3a85c' text-anchor='middle'%3E%D0%90%D0%A8%3C/text%3E%3C/svg%3E">
+
+<link rel="stylesheet" href="assets/css/fonts-stihi.css">
+<link rel="stylesheet" href="assets/css/stihi.css">
+
+<!-- тема и класс js — до отрисовки, чтобы не было вспышки -->
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add('js');
+  var saved = null;
+  try { saved = localStorage.getItem('ash:theme'); } catch (e) {}
+  d.dataset.theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+})();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Агния Шварц",
+  "jobTitle": "Поэт",
+  "nationality": "RU",
+  "description": "Поэт из Карелии. Философская и любовная лирика, стихи о войне, пейзажная лирика и стихи для детей.",
+  "sameAs": [
+    "https://stihi.ru/avtor/veselova69",
+    "https://vk.com/agnia_schwarz",
+    "https://www.youtube.com/@agnia_schwarz",
+    "https://t.me/photo_life_like"
+  ]
+}
+</script>
+    <link rel="canonical" href="https://stapelweb.ru/agnia/stihi.html">
+</head>
+<body>
+
+<a class="skip-link" href="#poems">Перейти к стихам</a>
+
+<header class="header" id="top">
+  <div class="wrap header-inner">
+    <a href="#top" class="brand">
+      <span class="brand-mark">АШ</span>
+      <span class="brand-name">Агния&nbsp;Шварц<em>стихи</em></span>
+    </a>
+
+    <nav class="nav" id="nav">
+      <a href="index.html">← Визитка</a>
+      <a href="#poems">Стихи</a>
+      <a href="#war">О войне</a>
+      <a href="#about">Об авторе</a>
+      <a href="#follow">Подписаться</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn" id="searchBtn" aria-label="Поиск по стихам" title="Поиск (/)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+      <button class="icon-btn" id="themeBtn" aria-label="Сменить тему" title="Светлая / тёмная тема">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      </button>
+      <button class="burger" id="burger" aria-label="Меню" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <p class="eyebrow reveal">Поэт из Карелии · пишет с детства</p>
+      <h1 class="reveal">Агния Шварц</h1>
+      <p class="hero-lead reveal">Стихи о том, что происходит внутри: о любви и потере, о людях
+        и войне, о свете, который всё равно пробивается. Тридцать четыре произведения — читайте
+        прямо здесь, без регистрации и лишних кликов.</p>
+
+      <div class="hero-quote reveal" aria-live="polite">
+        <span class="quote-mark" aria-hidden="true">“</span>
+        <span id="rotatingLine"></span>
+      </div>
+
+      <div class="hero-actions reveal">
+        <a href="#poems" class="btn btn-primary">Читать стихи</a>
+        <button class="btn btn-ghost" id="randomBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="btn-ico"><path d="M4 7h4l8 10h4M4 17h4l3-3.8M16 7h4M18 5l2 2-2 2M18 15l2 2-2 2"/></svg>
+          Случайное стихотворение
+        </button>
+      </div>
+
+      <dl class="stats reveal">
+        <div><dt>34</dt><dd>произведения</dd></div>
+        <div><dt>1100</dt><dd>читателей</dd></div>
+        <div><dt>8</dt><dd>рецензий</dd></div>
+        <div><dt>2007</dt><dd>год рождения</dd></div>
+      </dl>
+    </div>
+    <a href="#daily" class="scroll-hint" aria-label="Листать вниз"><span></span></a>
+  </section>
+
+  <!-- ================= СТИХОТВОРЕНИЕ ДНЯ ================= -->
+  <section class="daily" id="daily">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Стихотворение дня</h2>
+        <p>Каждый день — новое. Завтра здесь будет другое.</p>
+      </div>
+      <article class="daily-card" id="dailyCard"></article>
+    </div>
+  </section>
+
+  <!-- ================= КАТАЛОГ ================= -->
+  <section class="poems" id="poems">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Все стихи</h2>
+        <p>Ищите по строчке, слову или названию — и фильтруйте по настроению.</p>
+      </div>
+
+      <div class="toolbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" id="search" placeholder="Поиск по стихам…" aria-label="Поиск по стихам" autocomplete="off">
+          <button class="search-clear" id="searchClear" aria-label="Очистить поиск" hidden>×</button>
+        </div>
+        <div class="sort">
+          <label for="sort" class="sr-only">Сортировка</label>
+          <select id="sort">
+            <option value="new">Сначала новые</option>
+            <option value="old">Сначала ранние</option>
+            <option value="az">По алфавиту</option>
+            <option value="short">Сначала короткие</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="chips" id="chips" role="group" aria-label="Фильтр по темам"></div>
+
+      <p class="result-count" id="resultCount" aria-live="polite"></p>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty" hidden>
+        <p>Ничего не нашлось. Попробуйте другое слово — например, «любовь», «звезда» или «солдат».</p>
+        <button class="btn btn-ghost" id="resetBtn">Сбросить фильтры</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= О ВОЙНЕ ================= -->
+  <section class="war" id="war">
+    <div class="wrap">
+      <div class="section-head section-head--center">
+        <p class="eyebrow">Отдельный цикл</p>
+        <h2>О войне</h2>
+        <p>Десять стихотворений, которые автор вынесла в отдельный раздел. Здесь тише,
+          чем в остальном сборнике, — и читать их лучше по одному.</p>
+      </div>
+      <div class="war-list" id="warList"></div>
+    </div>
+  </section>
+
+  <!-- ================= ОБ АВТОРЕ ================= -->
+  <section class="about" id="about">
+    <div class="wrap about-inner">
+      <div class="about-portrait reveal">
+        <img src="assets/img/author.jpg" alt="Агния Шварц" id="authorPhoto"
+             width="853" height="1280" loading="lazy" decoding="async" onerror="this.remove()">
+        <span class="portrait-fallback" aria-hidden="true">АШ</span>
+      </div>
+      <div class="about-text reveal">
+        <p class="eyebrow">Об авторе</p>
+        <h2>«Мне нравятся душевные, философские темы, чувства и переживания»</h2>
+        <p>Всем доброго времени суток! Познакомимся? Я Агния — карельский поселковый поэт
+          2007 года рождения. С детства придумывала небольшие рифмы, а с пятнадцати лет
+          начала писать стихотворения.</p>
+        <p>Тема войны преследует меня довольно часто: сама я её не люблю, но, видимо, она
+          полюбила меня — забавно. Помимо поэзии мне нравится фотографировать: снимками
+          делюсь в телеграм-канале.</p>
+        <p>Буду и дальше делиться своим вдохновением и ждать новых читателей&nbsp;)</p>
+
+        <ul class="facts">
+          <li><b>Пишет с</b> 15 лет</li>
+          <li><b>Жанры</b> философская, любовная, пейзажная лирика, стихи для детей</li>
+          <li><b>Ещё увлечения</b> фотография</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ПОДПИСКА ================= -->
+  <section class="follow" id="follow">
+    <div class="wrap follow-inner">
+      <div class="follow-text">
+        <h2>Новые стихи — первыми</h2>
+        <p>Если строчки отозвались, подпишитесь: новые стихотворения и фотографии
+          появляются несколько раз в месяц.</p>
+      </div>
+      <div class="socials" id="socials"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <p>© <span id="year"></span> Агния Шварц. Все права на тексты принадлежат автору.
+      Перепечатка — только с согласия автора.</p>
+    <p class="footer-links">
+      <a href="https://stihi.ru/avtor/veselova69" target="_blank" rel="noopener">Страница на Стихи.ру</a>
+      <a href="#top">Наверх ↑</a>
+    </p>
+  </div>
+</footer>
+
+<!-- ================= ЧИТАЛКА ================= -->
+<div class="reader" id="reader" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden>
+  <div class="reader-backdrop" data-close></div>
+  <div class="reader-panel">
+    <div class="reader-progress"><i id="readerProgress"></i></div>
+    <div class="reader-bar">
+      <button class="icon-btn" data-close aria-label="Закрыть (Esc)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="reader-tools">
+        <button class="icon-btn" id="fontDown" aria-label="Уменьшить шрифт" title="Меньше шрифт">A<small>−</small></button>
+        <button class="icon-btn" id="fontUp" aria-label="Увеличить шрифт" title="Больше шрифт">A<small>+</small></button>
+        <button class="icon-btn" id="favBtn" aria-label="В избранное" title="В избранное">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.3A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.7C19 15.6 12 20 12 20Z"/></svg>
+        </button>
+        <button class="icon-btn" id="copyBtn" aria-label="Скопировать текст" title="Скопировать текст">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5A2.5 2.5 0 0 0 12.5 3H6.5A2.5 2.5 0 0 0 4 5.5v6A2.5 2.5 0 0 0 6.5 14"/></svg>
+        </button>
+        <button class="icon-btn" id="shareBtn" aria-label="Поделиться" title="Поделиться">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/><path d="m8.3 10.7 7.4-3.9M8.3 13.3l7.4 3.9"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <article class="reader-body" id="readerBody" tabindex="-1">
+      <p class="reader-genre" id="readerGenre"></p>
+      <h2 id="readerTitle"></h2>
+      <div class="poem-text" id="readerText"></div>
+      <p class="reader-meta" id="readerMeta"></p>
+      <a class="reader-source" id="readerSource" target="_blank" rel="noopener">Оригинал на Стихи.ру ↗</a>
+    </article>
+
+    <nav class="reader-nav">
+      <button id="prevBtn" class="btn btn-ghost">← Предыдущее</button>
+      <button id="nextBtn" class="btn btn-ghost">Следующее →</button>
+    </nav>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/js/poems.js"></script>
+<script src="assets/js/stihi.js"></script>
+</body>
+</html>
